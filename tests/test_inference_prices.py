@@ -16,7 +16,7 @@ from mymarket.errors import AppError
 from mymarket.model.artifacts import ArtifactBundle, CLASSES, FILES
 from mymarket.model.predict import Predictor
 from mymarket.service import MarketService
-from scripts.generate_fixtures import generate
+from mymarket.fixtures import generate
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -31,13 +31,14 @@ class ExportedTestDouble:
 def export_bundle(destination):
     destination.mkdir()
     joblib.dump(ExportedTestDouble(), destination / "model.joblib")
-    per_class = {label: {"precision": .5, "recall": .5, "f1": .5, "support": 1} for label in CLASSES}
+    per_class = {label: {"precision": .5, "recall": .5, "f1": .5, "support": 2} for label in CLASSES}
     # Controlled metadata exclusively for validator tests, never a served real export.
     metrics = {"schema_version": 1, "model_version": "test", "synthetic": False,
+               "class_order": ExportedTestDouble.classes_,
                "dataset_provenance": {"purpose": "unit test only"},
                "test": {"macro_f1": .5, "macro_f1_ci95": [.4, .6], "per_class": per_class,
-                        "confusion_matrix": [[1, 0, 0], [0, 1, 0], [0, 0, 1]], "directional_accuracy": None, "alert_precision": None},
-               "baselines": {name: {} for name in ["majority", "momentum", "keyword"]}, "rolling_origin": [], "limitations": ["Test double"]}
+                        "confusion_matrix": [[1, 1, 0], [0, 1, 1], [1, 0, 1]], "directional_accuracy": None, "alert_precision": None},
+               "baselines": {name: {"macro_f1": .3} for name in ["majority", "momentum", "keyword"]}, "rolling_origin": [], "limitations": ["Test double"]}
     values = {"label_map.json": {"classes": ExportedTestDouble.classes_},
               "thresholds.json": {"horizon_days": 14, "min_confidence": .8, "products": dict.fromkeys(["rice", "egg", "cooking_oil", "chicken"], .01)},
               "metrics.json": metrics}

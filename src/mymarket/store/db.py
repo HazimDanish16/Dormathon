@@ -1,6 +1,7 @@
-"""SQLite article cache and tables reserved for predictions and outcomes."""
+"""Migrated SQLite news, embedding, prediction, and outcome storage."""
 
 import math
+import hashlib
 import re
 import sqlite3
 from collections import Counter
@@ -131,6 +132,16 @@ class ArticleStore:
         with self.connection() as db:
             return db.execute("SELECT MAX(published_at) FROM articles WHERE source = ?", (source,)).fetchone()[0]
 
+    def record_text(self, text: str) -> dict:
+        """Keep text-only predictions auditable without treating them as dated news."""
+        now = utc_stamp(datetime.now(timezone.utc))
+        url = "https://mymarket.invalid/text/" + hashlib.sha256(text.encode()).hexdigest()
+        with self.connection() as db:
+            db.execute("""INSERT OR IGNORE INTO articles
+                (url,title,source,published_at,summary,body,lang,fetched_at,date_estimated,body_source)
+                VALUES (?,?,'user_text',?,'',?,'unknown',?,1,'user_text')""", (url, text[:160], now, text, now))
+            return dict(db.execute("SELECT * FROM articles WHERE url=?", (url,)).fetchone())
+
     def insert(self, article: Article) -> bool:
         with self.connection() as db:
             # Serialize the duplicate check and insert across polling processes.
@@ -152,7 +163,7 @@ class ArticleStore:
             raise ValueError("hours must be 1..8760 and limit must be 1..1000")
         now = now or datetime.now(timezone.utc)
         query = """SELECT id, title, source, published_at, url, summary, date_estimated
-                   FROM articles WHERE published_at BETWEEN ? AND ?"""
+                   FROM articles WHERE source != 'user_text' AND published_at BETWEEN ? AND ?"""
         if include_body:
             query = query.replace("summary, date_estimated", "summary, body, lang, date_estimated")
         params = [utc_stamp(now - timedelta(hours=hours)), utc_stamp(now)]

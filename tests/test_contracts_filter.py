@@ -14,7 +14,7 @@ from mymarket.filter.aliases import match_aliases
 from mymarket.filter.embed_filter import filter_threshold
 from mymarket.service import MarketService
 from mymarket.store.db import Article, ArticleStore
-from scripts.generate_fixtures import generate
+from mymarket.fixtures import generate
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -59,6 +59,21 @@ def test_relevance_threshold_persistence_and_errors(fixture_settings):
         assert db.execute("SELECT COUNT(*) FROM article_products").fetchone()[0] == 1
     service.embedder.encode = lambda texts: np.array([[1., 0.], [0., 1.]])
     assert service.filter_relevant()["count"] == 0
+    with store.connection() as db:
+        assert db.execute("SELECT COUNT(*) FROM article_products").fetchone()[0] == 0
     with pytest.raises(AppError):
         service.filter_relevant(domain="unknown")
     assert filter_threshold(fixture_settings) == (.8, False)
+
+
+def test_changed_aliases_remove_stale_matches(fixture_settings):
+    store = ArticleStore(fixture_settings.sqlite_path)
+    now = datetime.now(timezone.utc)
+    store.insert(Article("https://example.com/FAKE-changed", "Chicken shortage", "FAKE", now, "", "", "en", now))
+    service = MarketService(fixture_settings)
+    assert service.filter_relevant()["count"] == 1
+    chicken = next(domain.products["chicken"] for domain in service.config.domains.values() if "chicken" in domain.products)
+    chicken.exclude_phrases.append("chicken shortage")
+    assert service.filter_relevant()["count"] == 0
+    with store.connection() as db:
+        assert db.execute("SELECT COUNT(*) FROM article_products").fetchone()[0] == 0

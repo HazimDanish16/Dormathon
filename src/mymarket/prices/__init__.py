@@ -1,1 +1,1 @@
-"""Processed price-index access (pending implementation)."""
+"""Exact-date processed price-index access and freshness reporting."""

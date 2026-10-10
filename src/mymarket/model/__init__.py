@@ -1,1 +1,1 @@
-"""Model features and inference (pending implementation)."""
+"""Validated Colab artifacts, feature adapters, and CPU inference."""

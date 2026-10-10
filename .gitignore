@@ -21,6 +21,7 @@ dist/
 # Downloaded data and runtime state
 data/raw/
 data/processed/
+data/refresh/
 *.sqlite
 *.sqlite3
 *.sqlite-shm

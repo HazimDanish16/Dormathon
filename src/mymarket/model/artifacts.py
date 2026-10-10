@@ -55,7 +55,7 @@ def read_json(path: Path):
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def validate_metrics(data: dict, version: str) -> dict:
+def validate_metrics(data: dict, version: str, classes: list[str]) -> dict:
     if data.get("schema_version") != 1 or data.get("model_version") != version or data.get("synthetic") is not False:
         raise ValueError("Metrics provenance/version mismatch")
     if not isinstance(data.get("dataset_provenance"), dict) or not data["dataset_provenance"]:
@@ -78,8 +78,26 @@ def validate_metrics(data: dict, version: str) -> dict:
     matrix = test["confusion_matrix"]
     if len(matrix) != 3 or any(len(row) != 3 or any(not isinstance(n, int) or n < 0 for n in row) for row in matrix):
         raise ValueError("Invalid confusion matrix")
+    if data.get("class_order") != classes:
+        raise ValueError("Metrics matrix order differs from exported classes")
+    computed = []
+    for index, label in enumerate(classes):
+        support = sum(matrix[index])
+        predicted = sum(row[index] for row in matrix)
+        precision = matrix[index][index] / predicted if predicted else 0.
+        recall = matrix[index][index] / support if support else 0.
+        f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.
+        reported = test["per_class"][label]
+        if support != reported["support"] or any(abs(reported[key] - value) > 1e-5 for key, value in [("precision", precision), ("recall", recall), ("f1", f1)]):
+            raise ValueError("Per-class metrics disagree with the confusion matrix")
+        computed.append(f1)
+    if abs(sum(computed) / 3 - test["macro_f1"]) > 1e-5:
+        raise ValueError("Macro-F1 disagrees with per-class metrics")
     if not {"majority", "momentum", "keyword"}.issubset(data["baselines"]):
         raise ValueError("Missing required baselines")
+    for baseline in data["baselines"].values():
+        if not isinstance(baseline, dict) or not isinstance(baseline.get("macro_f1"), (int, float)) or not 0 <= baseline["macro_f1"] <= 1:
+            raise ValueError("Each baseline must include a computed macro_f1")
     if not isinstance(data.get("rolling_origin"), list) or not isinstance(data.get("limitations"), list):
         raise ValueError("Missing rolling-origin results or limitations")
     return data
@@ -118,7 +136,7 @@ class ArtifactBundle:
             configured = {product for domain in load_products(self.settings).domains.values() for product in domain.products}
             if not configured.issubset(thresholds.products):
                 raise ValueError("Missing product thresholds")
-            metrics = validate_metrics(read_json(paths[4]), manifest.model_version)
+            metrics = validate_metrics(read_json(paths[4]), manifest.model_version, classes)
             import joblib
             model = joblib.load(paths[1])
             if not callable(getattr(model, "predict_proba", None)) or list(model.classes_) != classes:

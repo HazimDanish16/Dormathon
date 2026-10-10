@@ -58,7 +58,10 @@ def validate_grounding(explanation: Explanation, facts: dict, lang: str):
         raise ValueError("Explanation changes computed prediction")
     text = " ".join([explanation.headline, explanation.domain_impact, impact.why, explanation.confidence_note, explanation.disclaimer])
     given = json.dumps(facts, ensure_ascii=False)
-    if set(re.findall(r"\d+(?:\.\d+)?", text)) - set(re.findall(r"\d+(?:\.\d+)?", given)):
+    figures = json.dumps({"prediction": prediction, "price_context": facts["price_context"]}, ensure_ascii=False)
+    # Publication dates and URL digits cannot justify a price or probability figure.
+    figures = re.sub(r'"data_as_of"\s*:\s*"[^"]*"', '', figures)
+    if set(re.findall(r"-?\d+(?:\.\d+)?", text)) - set(re.findall(r"-?\d+(?:\.\d+)?", figures)):
         raise ValueError("Explanation introduces a new figure")
     allowed = set(re.findall(r"\w+", given.casefold())) | GRAMMAR
     if set(re.findall(r"\w+", text.casefold())) - allowed:

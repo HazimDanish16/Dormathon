@@ -37,8 +37,8 @@ column may be included for audit but is not an input to inference.
 ## Colab export interface
 
 Export trusted teammate artifacts into `models/`. Joblib loading executes Python
-serialization; never load files from an untrusted source. Include all five JSON
-and model files, with SHA-256 hashes binding them to one export.
+serialization; never load files from an untrusted source. Include all five
+artifact files, with SHA-256 hashes binding them to one export.
 
 - `model.joblib`: a fitted, calibrated sklearn-compatible object with `classes_`
   and `predict_proba(DataFrame)`. The full preprocessing pipeline lives inside
@@ -48,10 +48,13 @@ and model files, with SHA-256 hashes binding them to one export.
 - `thresholds.json`: `{"horizon_days":14,"min_confidence":0.55,"products":{"rice":0.01,...}}`.
   Thresholds are nonnegative fractions derived from training data only.
 - `metrics.json`: `schema_version=1`, `model_version`, `synthetic=false`,
-  `dataset_provenance` (a nonempty object), `test` and `baselines`. Test fields:
+  `dataset_provenance` (a nonempty object), `class_order` (same as label_map),
+  `test` and `baselines`. Test fields:
   `macro_f1`, `macro_f1_ci95` (two numbers), `per_class` (precision/recall/F1/support
-  per label), 3x3 `confusion_matrix`, `directional_accuracy`, `alert_precision`
-  (null when undefined). Baselines contain majority, momentum, keyword results.
+  per label), 3x3 `confusion_matrix` in class_order, `directional_accuracy`, `alert_precision`
+  (null when undefined). Baselines contain majority, momentum, keyword objects
+  with computed `macro_f1` values. Precision/recall/F1/support must agree with the
+  confusion matrix; macro-F1 is the mean across all three labels, zero division=0.
   Include `rolling_origin`, optional `by_product`, and explicit `limitations`.
 - `manifest.json`: `schema_version=1`, `model_version`, `synthetic=false`,
   `features=["text","product","domain"]`, `body_chars=1500`,

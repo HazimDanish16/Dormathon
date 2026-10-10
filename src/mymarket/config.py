@@ -52,6 +52,12 @@ class Settings:
     model_dir: Path | None = None
     embedding_revision: str = "614241f622f53c4eeff9890bdc4f31cfecc418b3"
 
+    def __post_init__(self):
+        if self.data_mode not in {"real", "fixture"}:
+            raise ValueError("MYMARKET_DATA_MODE must be real or fixture")
+        if self.data_mode == "fixture" and self.database_path and not self.database_path.name.startswith("FAKE"):
+            raise ValueError("Fixture databases must have a FAKE filename; do not reuse the live database")
+
     @property
     def sqlite_path(self) -> Path:
         default = "FAKE.sqlite3" if self.data_mode == "fixture" else "mymarket.sqlite3"

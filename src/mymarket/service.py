@@ -2,7 +2,6 @@
 
 import json
 import time
-from urllib.parse import urlsplit
 
 import numpy as np
 
@@ -62,22 +61,27 @@ class MarketService:
         threshold, audited = filter_threshold(self.settings)
         matches = []
         if texts:
-            vectors = self.embedder.encode(texts)
-            with store.connection() as db:
-                for i, (article, match) in enumerate(candidates):
-                    score = float(np.dot(vectors[2 * i], vectors[2 * i + 1]))
-                    if score >= threshold:
-                        matches.append({"article": article, **match, "match_score": score})
-                        db.execute("INSERT OR REPLACE INTO article_products VALUES (?, ?, ?, ?)",
-                                   (article["id"], match["product"], score, json.dumps(match["matched_terms"])))
-                    else:
-                        db.execute("DELETE FROM article_products WHERE article_id=? AND product=?", (article["id"], match["product"]))
+            vectors = self.embedder.encode(texts, deadline=deadline) if deadline is not None else self.embedder.encode(texts)
+            for i, (article, match) in enumerate(candidates):
+                score = float(np.dot(vectors[2 * i], vectors[2 * i + 1]))
+                if score >= threshold:
+                    matches.append({"article": article, **match, "match_score": score})
+        products = [product for domain_id, configured in self.config.domains.items()
+                    if domain is None or domain_id == domain for product in configured.products]
+        with store.connection() as db:
+            # Replace the evaluated scope even when aliases now produce no candidates.
+            db.executemany("DELETE FROM article_products WHERE article_id=? AND product=?",
+                           [(article["id"], product) for article in articles for product in products])
+            db.executemany("INSERT INTO article_products VALUES (?, ?, ?, ?)",
+                           [(match["article"]["id"], match["product"], match["match_score"],
+                             json.dumps(match["matched_terms"])) for match in matches])
         return self.response(matches=matches, count=len(matches), threshold=threshold,
                              threshold_audited=audited, warnings=[] if audited else ["Relevance threshold is untuned."])
 
     def predict_impact(self, url=None, text=None, products=None):
         if bool(url) == bool(text):
             raise AppError("Provide exactly one of url or text.", "Supply article text, or the URL of a cached article.")
+        article = None
         if url:
             from mymarket.store.db import canonical_url
             with ArticleStore(self.settings.sqlite_path).connection() as db:
@@ -85,6 +89,7 @@ class MarketService:
             if row is None:
                 raise AppError("Article URL is not cached.", "Run the news poller first or supply text; this tool does not fetch arbitrary URLs.")
             text = article_text(dict(row))
+            article = dict(row)
         if not isinstance(text, str) or not text.strip() or len(text) > 20000:
             raise AppError("Invalid article text.", "Supply nonempty text up to 20,000 characters.")
         if products is None:
@@ -92,7 +97,11 @@ class MarketService:
         selected = [(product, self.product_domain(product)) for product in dict.fromkeys(products)]
         if not selected:
             return self.response(predictions=[], warnings=["No tracked product aliases matched."])
-        return self.response(predictions=self.predictor.predict(text, selected))
+        predictions = self.predictor.predict(text, selected)
+        article = article or ArticleStore(self.settings.sqlite_path).record_text(text)
+        for prediction in predictions:
+            prediction["prediction_id"] = self.ledger.log(article, prediction)
+        return self.response(predictions=predictions)
 
     def price_context(self, product, days=90):
         self.product_domain(product)

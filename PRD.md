@@ -2,6 +2,12 @@
 
 Version 0.1. Date: 2026-10-10. Status: hackathon MVP. Backend only.
 
+Implementation ownership update: this repository owns the MCP app, inference,
+and handoff validation. The teammate owns historical preprocessing and training
+in Google Colab. `DATA_AGENT_PROMPT.md` is the canonical versioned interface.
+No local training script or teammate-owned notebook is maintained here. All app
+tools are implemented; real readiness still requires the teammate's exports.
+
 One line: an MCP server that reads live Malaysian news, finds stories tied to tracked products, predicts if the story points to price UP, DOWN or STABLE, checks that call against official price data, and explains it in plain words.
 
 ---
@@ -312,10 +318,10 @@ mymarket/
     03_build_price_index.py
     04_map_items.py
     05_build_examples.py
-    06_train_local.py
-    07_evaluate.py
+    validate_handoff.py
+    demo.py
     daily_refresh.py
-  notebooks/train_colab.ipynb
+  # Training notebook is owned by the teammate in Google Colab.
   src/mymarket/
     ingest/ (rss.py, fetch_body.py)
     filter/ (aliases.py, embed_filter.py)
@@ -416,7 +422,7 @@ Backup, no key: install Ollama, run `ollama pull llama3.2:3b` (or another small 
 ### M6. Train on Colab (60 to 90 min)
 1. Locally run scripts 05. Output: `data/processed/examples.parquet`. Check label counts printed per product. If a product has under 300 examples, merge it into a product group in `products.yaml` and rerun.
 2. Make a Drive folder `mymarket`. Upload `examples.parquet`.
-3. Go to colab.research.google.com. New notebook (or upload `notebooks/train_colab.ipynb`).
+3. The teammate opens their training notebook at colab.research.google.com.
 4. Runtime, Change runtime type, T4 GPU, Save.
 5. Cell 1:
 ```python
@@ -434,7 +440,7 @@ drive.mount('/content/drive')
    - write `model.joblib`, `label_map.json`, `thresholds.json`, `metrics.json`
 7. Download the four files from Drive. Put them in `models/`.
 8. Optional v2: run the fine-tune cell (3 epochs, learning rate 2e-5, max length 256). Keep it only if test macro-F1 beats v1.
-9. If you have no GPU or Colab fails, run `python scripts/06_train_local.py`. It uses CPU and may take 20 to 60 minutes. I have not measured this.
+9. If Colab is unavailable, coordinate with the teammate; this repository does not train models locally. Export all five files from `DATA_AGENT_PROMPT.md`, including the artifact manifest, then run `python scripts/validate_handoff.py` here.
 
 ### M7. Connect the MCP server (15 min)
 1. Test first with Inspector:

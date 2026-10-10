@@ -13,7 +13,7 @@ from mymarket.llm.explain import Explainer, template
 from mymarket.llm.schema import Explanation, validate_grounding
 from mymarket.service import MarketService
 from mymarket.store.db import Article, ArticleStore
-from scripts.generate_fixtures import generate
+from mymarket.fixtures import generate
 
 ROOT = Path(__file__).resolve().parents[1]
 FACTS = {"article": {"title": "Chicken shortage", "source": "Test"},
@@ -40,6 +40,15 @@ def test_grounding_rejects_invented_numbers_and_names(field, text):
     data[field] = text
     with pytest.raises(ValueError):
         validate_grounding(Explanation.model_validate(data), FACTS, "en")
+
+
+def test_dates_cannot_justify_a_price_figure():
+    facts = {**FACTS, "article": {**FACTS["article"], "published_at": "2026-10-10"}}
+    data = template(facts)
+    data.pop("explanation_source")
+    data["headline"] = "Prices rise 10"
+    with pytest.raises(ValueError, match="figure"):
+        validate_grounding(Explanation.model_validate(data), facts, "en")
 
 
 @pytest.mark.parametrize("provider", ["gemini", "groq", "ollama"])

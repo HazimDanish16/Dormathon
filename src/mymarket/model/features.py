@@ -31,7 +31,9 @@ class E5Features(BaseEstimator, TransformerMixin):
     def transform(self, X):
         from sentence_transformers import SentenceTransformer
         if not hasattr(self, "_model"):
-            self._model = SentenceTransformer(self.model_name, revision=self.revision, device="cpu", local_files_only=True)
+            from huggingface_hub import snapshot_download
+            folder = snapshot_download(self.model_name, revision=self.revision, local_files_only=True)
+            self._model = SentenceTransformer(folder, device="cpu", local_files_only=True)
         texts = X.iloc[:, 0] if getattr(X, "ndim", 1) == 2 else X
         return self._model.encode(["query: " + str(text) for text in texts], normalize_embeddings=True, show_progress_bar=False, device="cpu")
 

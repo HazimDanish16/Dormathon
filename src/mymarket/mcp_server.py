@@ -1,10 +1,12 @@
-"""Stdio tools for configuration and cached news, with placeholders for ML."""
+"""Eight stdio MCP tools for news, relevance, predictions, and validation."""
 
 import logging
+import json
 import sys
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP
+from mcp.types import TextContent
 
 from mymarket.config import Settings, load_products, load_sources
 from mymarket.store.db import ArticleStore
@@ -12,6 +14,16 @@ from mymarket.errors import AppError
 from mymarket.service import MarketService
 
 logger = logging.getLogger(__name__)
+
+
+class JsonFastMCP(FastMCP):
+    async def call_tool(self, name, arguments):
+        try:
+            return await super().call_tool(name, arguments)
+        except Exception:
+            logger.warning("Rejected invalid tool call: %s", name)
+            payload = {"error": "Invalid tool call.", "hint": "Use a listed tool and arguments matching its input schema."}
+            return [TextContent(type="text", text=json.dumps(payload))], payload
 
 
 def create_server(settings: Settings | None = None) -> FastMCP:
@@ -31,7 +43,7 @@ def create_server(settings: Settings | None = None) -> FastMCP:
         except Exception:
             logger.exception("Tool failed: %s", method)
             return {"error": "Unable to complete request.", "hint": "Check server logs, configuration, and handoff inputs."}
-    server = FastMCP(
+    server = JsonFastMCP(
         "mymarket",
         instructions=(
             "Malaysian news and product-price awareness. Predictions require compatible teammate Colab exports. "

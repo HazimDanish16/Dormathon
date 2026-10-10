@@ -4,6 +4,7 @@ import hashlib
 import json
 import logging
 import threading
+import time
 
 import numpy as np
 
@@ -22,7 +23,7 @@ class Embedder:
         self.lock = threading.RLock()
         self.key = "FAKE-embedder-v1" if settings.data_mode == "fixture" else MODEL + "@" + settings.embedding_revision
 
-    def encode(self, texts: list[str]) -> np.ndarray:
+    def encode(self, texts: list[str], deadline=None) -> np.ndarray:
         if self.settings.data_mode == "fixture":
             # Deliberate test double: no semantic accuracy claim.
             return np.tile(np.array([1.0, 0.0], dtype=np.float32), (len(texts), 1))
@@ -36,15 +37,26 @@ class Embedder:
                 try:
                     if self.model is None:
                         from sentence_transformers import SentenceTransformer
-                        self.model = SentenceTransformer(MODEL, revision=self.settings.embedding_revision, device="cpu", local_files_only=True)
-                    vectors = self.model.encode([texts[i] for i in missing], normalize_embeddings=True, show_progress_bar=False, device="cpu")
+                        from huggingface_hub import snapshot_download
+                        folder = snapshot_download(MODEL, revision=self.settings.embedding_revision, local_files_only=True)
+                        self.model = SentenceTransformer(folder, device="cpu", local_files_only=True)
                 except Exception as exc:
                     raise AppError("CPU embedding model unavailable.", "Run scripts/cache_embeddings.py once with network access; no alias-only fallback is used.") from exc
-                with store.connection() as db:
-                    for index, vector in zip(missing, vectors):
-                        encoded = json.dumps(vector.tolist())
-                        db.execute("INSERT OR REPLACE INTO embeddings VALUES (?, ?, ?)", (self.key, hashes[index], encoded))
-                        cached[index] = {"vector": encoded}
+                unique = list(dict.fromkeys(hashes[i] for i in missing))
+                positions = {key: hashes.index(key) for key in unique}
+                results = {}
+                for start in range(0, len(unique), 16):
+                    if deadline is not None and time.monotonic() >= deadline:
+                        raise AppError("Embedding time budget reached.", "Warm the embedding cache and retry with a shorter news window.")
+                    batch = unique[start:start + 16]
+                    vectors = self.model.encode([texts[positions[key]] for key in batch], normalize_embeddings=True, show_progress_bar=False, device="cpu")
+                    with store.connection() as db:
+                        for key, vector in zip(batch, vectors):
+                            encoded = json.dumps(vector.tolist())
+                            db.execute("INSERT OR REPLACE INTO embeddings VALUES (?, ?, ?)", (self.key, key, encoded))
+                            results[key] = {"vector": encoded}
+                for index in missing:
+                    cached[index] = results[hashes[index]]
             return np.asarray([json.loads(row["vector"]) for row in cached], dtype=np.float32)
 
 

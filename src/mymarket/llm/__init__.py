@@ -1,1 +1,1 @@
-"""Grounded explanations and schemas (pending implementation)."""
+"""Validated grounded explanations with bilingual template fallback."""

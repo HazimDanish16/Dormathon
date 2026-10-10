@@ -1,1 +1,1 @@
-"""Product relevance filtering (pending implementation)."""
+"""Bilingual aliases and cached CPU embedding relevance filtering."""
