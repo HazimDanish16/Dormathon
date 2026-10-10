@@ -85,13 +85,13 @@ def create_server(settings: Settings | None = None) -> FastMCP:
     def predict_impact(
         url: str | None = None, text: str | None = None, products: list[str] | None = None,
     ) -> dict[str, Any]:
-        """Scaffold: predict UP, DOWN, or STABLE for a URL or text; models are pending."""
-        return pending("Impact prediction")
+        """Predict price direction using a trusted Colab export; accepts text or a cached URL."""
+        return invoke("predict_impact", url=url, text=text, products=products)
 
     @server.tool()
     def price_context(product: str, days: int = 90) -> dict[str, Any]:
-        """Scaffold: read a processed price index; price context is pending."""
-        return pending("Price context")
+        """Return exact-date price changes, series, and data freshness from processed indexes."""
+        return invoke("price_context", product=product, days=days)
 
     @server.tool()
     def scan_alerts(
@@ -102,8 +102,8 @@ def create_server(settings: Settings | None = None) -> FastMCP:
 
     @server.tool()
     def backtest_report(product: str | None = None) -> dict[str, Any]:
-        """Scaffold: report computed evaluation metrics and baselines; evaluation is pending."""
-        return pending("Backtest reporting")
+        """Read validated Colab evaluation results; never invent accuracy or baselines."""
+        return invoke("backtest_report", product=product)
 
     @server.tool()
     def forward_validation(product: str | None = None) -> dict[str, Any]:

@@ -44,7 +44,7 @@ def validate_frame(frame: pd.DataFrame, name: str, settings: Settings) -> pd.Dat
             raise ValueError(f"{column} must contain strings")
     if "product" in frame and not set(frame["product"]).issubset(products):
         raise ValueError("Unknown products")
-    if "domain" in frame and any(row.product not in domains.get(row.domain, type("Empty", (), {"products": {}})()).products for row in frame.itertuples()):
+    if "domain" in frame and any(row.domain not in domains or row.product not in domains[row.domain].products for row in frame.itertuples()):
         raise ValueError("Product/domain mismatch")
     if "published_at" in frame:
         if not frame["published_at"].map(lambda value: pd.Timestamp(value).tzinfo is not None).all():

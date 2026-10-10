@@ -1,6 +1,7 @@
 """Application services shared by MCP and maintenance commands."""
 
 import json
+from urllib.parse import urlsplit
 
 import numpy as np
 
@@ -9,6 +10,8 @@ from mymarket.errors import AppError
 from mymarket.filter.aliases import article_text, match_aliases
 from mymarket.filter.embed_filter import Embedder, filter_threshold
 from mymarket.store.db import ArticleStore
+from mymarket.model.predict import Predictor
+from mymarket.prices.index import PriceIndex
 
 
 class MarketService:
@@ -16,6 +19,8 @@ class MarketService:
         self.settings = settings
         self.config = load_products(settings)
         self.embedder = Embedder(settings)
+        self.predictor = Predictor(settings)
+        self.prices = PriceIndex(settings)
 
     @property
     def synthetic(self) -> bool:
@@ -64,3 +69,40 @@ class MarketService:
                         db.execute("DELETE FROM article_products WHERE article_id=? AND product=?", (article["id"], match["product"]))
         return self.response(matches=matches, count=len(matches), threshold=threshold,
                              threshold_audited=audited, warnings=[] if audited else ["Relevance threshold is untuned."])
+
+    def predict_impact(self, url=None, text=None, products=None):
+        if bool(url) == bool(text):
+            raise AppError("Provide exactly one of url or text.", "Supply article text, or the URL of a cached article.")
+        if url:
+            from mymarket.store.db import canonical_url
+            with ArticleStore(self.settings.sqlite_path).connection() as db:
+                row = db.execute("SELECT * FROM articles WHERE url=?", (canonical_url(url),)).fetchone()
+            if row is None:
+                raise AppError("Article URL is not cached.", "Run the news poller first or supply text; this tool does not fetch arbitrary URLs.")
+            text = article_text(dict(row))
+        if not isinstance(text, str) or not text.strip() or len(text) > 20000:
+            raise AppError("Invalid article text.", "Supply nonempty text up to 20,000 characters.")
+        if products is None:
+            products = [match["product"] for match in match_aliases(text, self.config)]
+        selected = [(product, self.product_domain(product)) for product in dict.fromkeys(products)]
+        if not selected:
+            return self.response(predictions=[], warnings=["No tracked product aliases matched."])
+        return self.response(predictions=self.predictor.predict(text, selected))
+
+    def price_context(self, product, days=90):
+        self.product_domain(product)
+        return self.response(**self.prices.context(product, days))
+
+    def backtest_report(self, product=None):
+        if product is not None:
+            self.product_domain(product)
+        if self.synthetic:
+            return self.response(available=False, metrics=None, message="FAKE test doubles have no model accuracy. Obtain the real Colab evaluation export.")
+        bundle = self.predictor.bundle.load()
+        metrics = bundle.metrics
+        if product is not None:
+            if product not in metrics.get("by_product", {}):
+                raise AppError("No computed metrics for this product.", "Ask your teammate to include by_product results; aggregate metrics are not a substitute.")
+            metrics = {"product": product, "results": metrics["by_product"][product],
+                       "model_version": bundle.manifest.model_version, "dataset_provenance": metrics["dataset_provenance"]}
+        return self.response(available=True, metrics=metrics)

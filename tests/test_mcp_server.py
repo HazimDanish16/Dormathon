@@ -63,6 +63,8 @@ def test_stdio_discovery_and_tool_calls(tmp_path, entry_point):
                             assert payload["articles"][0]["published_at"].endswith("+08:00")
                         elif name == "filter_relevant":
                             assert "error" in payload # Real embedding weights are deliberately not downloaded in tests.
+                        elif name in {"predict_impact", "price_context", "backtest_report"}:
+                            assert set(payload) == {"error", "hint"}
                         else:
                             assert set(payload) == {"error", "hint"}
                             assert "not implemented" in payload["error"]
