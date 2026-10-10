@@ -15,13 +15,16 @@ if __name__ == "__main__":
     parser.add_argument("--size", type=int, default=120)
     parser.add_argument("--hours", type=int, default=8760)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--news-file", type=Path, help="Validate and sample the full historical news handoff instead of the live cache")
     parser.add_argument("--apply", action="store_true")
     args = parser.parse_args()
     if args.apply and args.action != "assess":
         parser.error("--apply is only valid with assess")
+    if args.news_file and args.action != "export":
+        parser.error("--news-file is only valid with export")
     try:
         settings = Settings.from_env()
-        result = (export_audit(settings, args.file, args.size, args.hours, args.seed) if args.action == "export"
+        result = (export_audit(settings, args.file, args.size, args.hours, args.seed, args.news_file) if args.action == "export"
                   else assess_audit(settings, args.file, args.apply))
         print(json.dumps(result, indent=2))
     except AppError as exc:

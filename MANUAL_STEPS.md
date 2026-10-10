@@ -20,6 +20,13 @@ put its key and a supported model name in `.env`; never commit credentials.
 
 ## Relevance audit
 
+For the teammate's historical handoff, use
+`uv run python scripts/audit_relevance.py export --news-file data/processed/news_clean.parquet --file data/audits/relevance_historical.csv`.
+This validates all rows and samples the entire archive, including older dates;
+it does not insert historical news into the live cache. Label that CSV, then
+assess with `--file data/audits/relevance_historical.csv`. Its sidecar records
+the input hash, dates, source counts, and product candidate counts.
+
 1. Run `uv run python scripts/audit_relevance.py export --size 120`. It samples
    real cached alias matches, including those below the default threshold.
 2. Open `data/audits/relevance.csv` in Excel or Sheets. Fill only `relevant`

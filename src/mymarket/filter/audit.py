@@ -12,10 +12,11 @@ from pathlib import Path
 import numpy as np
 
 from mymarket.config import load_products
+from mymarket.contracts import validate_frame
 from mymarket.errors import AppError
 from mymarket.filter.aliases import article_text, match_aliases, product_description
 from mymarket.filter.embed_filter import Embedder
-from mymarket.store.db import ArticleStore
+from mymarket.store.db import ArticleStore, canonical_url
 
 FIELDS = ["article_id", "product", "domain", "source", "published_at", "url", "title",
           "text", "matched_terms", "similarity", "split", "relevant", "notes"]
@@ -30,18 +31,81 @@ def snapshot_hash(rows):
     return hashlib.sha256(json.dumps(values, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
 
-def export_audit(settings, path: Path, size=120, hours=8760, seed=42):
+def historical_articles(settings, path, provenance):
+    """Validate the complete handoff in bounded batches, including global uniqueness."""
+    import pyarrow.parquet as pq
+    seen_ids, seen_urls = set(), set()
+    try:
+        archive = pq.ParquetFile(path)
+        provenance.update(rows=archive.metadata.num_rows, sources={}, date_min=None, date_max=None)
+        for batch in archive.iter_batches(batch_size=1024):
+            frame = validate_frame(batch.to_pandas(), "news_clean.parquet", settings)
+            for row in frame.to_dict("records"):
+                article_id, url = row["article_id"], canonical_url(row["url"])
+                if article_id in seen_ids or url in seen_urls:
+                    raise ValueError("Duplicate article IDs or canonical URLs across archive batches")
+                seen_ids.add(article_id)
+                seen_urls.add(url)
+                stamp = row["published_at"].isoformat()
+                provenance["date_min"] = min(provenance["date_min"] or stamp, stamp)
+                provenance["date_max"] = max(provenance["date_max"] or stamp, stamp)
+                source = row["source"]
+                provenance["sources"][source] = provenance["sources"].get(source, 0) + 1
+                yield {**row, "id": article_id, "published_at": stamp}
+        if not seen_ids:
+            raise ValueError("News archive is empty")
+    except (ValueError, OSError, KeyError) as exc:
+        raise AppError("Historical news violates the handoff contract.", str(exc)) from exc
+
+
+def export_audit(settings, path: Path, size=120, hours=8760, seed=42, news_file: Path | None = None):
     if path.exists() or path.with_suffix(".json").exists():
         raise AppError("Audit output already exists.", "Use a new filename to preserve existing human labels.")
     if not 1 <= size <= 1000 or not 1 <= hours <= 8760:
         raise AppError("Invalid audit window or size.", "Use size=1..1000 and hours=1..8760; aim for at least 120 labeled pairs.")
     config = load_products(settings)
-    articles = ArticleStore(settings.sqlite_path).recent(hours=hours, limit=1000, include_body=True)
-    candidates = [(article, match) for article in articles for match in match_aliases(article_text(article), config)]
-    if not candidates:
-        raise AppError("No alias-matched news is available.", "Poll real news, or widen the news window; no fake rows will be substituted.")
     rng = random.Random(seed)
-    selected = rng.sample(candidates, min(size, len(candidates)))
+    provenance = {}
+    pool_products = Counter()
+    if news_file is not None:
+        news_file = news_file.resolve()
+        if not news_file.is_file():
+            raise AppError("Historical news file is missing.", "Provide an existing news_clean.parquet handoff with --news-file.")
+        original_stat = news_file.stat()
+        # Reservoir sampling is uniform over all pairs, without retaining the archive.
+        selected, count, matched_articles = [], 0, 0
+        for article in historical_articles(settings, news_file, provenance):
+            matches = match_aliases(article_text(article), config)
+            matched_articles += bool(matches)
+            for match in matches:
+                count += 1
+                pool_products[match["product"]] += 1
+                candidate = (article, match)
+                if len(selected) < size:
+                    selected.append(candidate)
+                else:
+                    index = rng.randrange(count)
+                    if index < size:
+                        selected[index] = candidate
+        current_stat = news_file.stat()
+        if (original_stat.st_size, original_stat.st_mtime_ns) != (current_stat.st_size, current_stat.st_mtime_ns):
+            raise AppError("News archive changed during validation.", "Wait for the file transfer to finish, then export again.")
+        digest = hashlib.sha256()
+        with news_file.open("rb") as source:
+            for block in iter(lambda: source.read(1024*1024), b""):
+                digest.update(block)
+        provenance.update(kind="historical_handoff", filename=news_file.name, sha256=digest.hexdigest(),
+                          matched_articles=matched_articles, candidate_products=dict(pool_products))
+        scope = "Uniform reservoir sample of alias candidates across the entire validated news handoff; cannot measure alias recall."
+    else:
+        articles = ArticleStore(settings.sqlite_path).recent(hours=hours, limit=1000, include_body=True)
+        candidates = [(article, match) for article in articles for match in match_aliases(article_text(article), config)]
+        count = len(candidates)
+        selected = rng.sample(candidates, min(size, count))
+        provenance = {"kind": "live_cache", "rows": len(articles)}
+        scope = "Random sample of alias candidates in the newest 1000 cached articles; cannot measure alias recall."
+    if not count:
+        raise AppError("No alias-matched news is available.", "Poll real news, or widen the news window; no fake rows will be substituted.")
     ids = sorted({article["id"] for article, _ in selected})
     rng.shuffle(ids)
     holdout = set(ids[:max(1, math.ceil(len(ids) * .3))])
@@ -60,13 +124,14 @@ def export_audit(settings, path: Path, size=120, hours=8760, seed=42):
     metadata = {"schema_version": 1, "created_at": datetime.now(timezone.utc).isoformat(),
                 "synthetic": settings.data_mode == "fixture", "embedding_key": Embedder(settings).key,
                 "config_sha256": config_hash(settings), "snapshot_sha256": snapshot_hash(rows),
-                "seed": seed, "hours": hours, "requested": size, "candidates": len(candidates), "sampled": len(rows),
+                "seed": seed, "hours": hours if news_file is None else None, "requested": size, "candidates": count, "sampled": len(rows),
+                "input": provenance,
                 "products": dict(Counter(row["product"] for row in rows)),
-                "limitations": ["Random sample of alias candidates in the newest 1000 cached articles; cannot measure alias recall.",
+                "limitations": [scope,
                                 "Holdout groups article IDs; related stories may still be correlated.",
                                 "Precision estimates do not establish model prediction accuracy."]}
     if len(rows) < size:
-        metadata["limitations"].append("Cache is too small for the requested sample; collect more real news.")
+        metadata["limitations"].append("Input has too few candidates for the requested sample; collect more real news.")
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("x", encoding="utf-8-sig", newline="") as output:
         writer = csv.DictWriter(output, fieldnames=FIELDS)

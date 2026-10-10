@@ -157,6 +157,8 @@ For human relevance review, run `uv run python scripts/audit_relevance.py export
 Label the CSV's `relevant` column, then run the command with `assess`.
 See `MANUAL_STEPS.md` for labeling rules and held-out threshold validation.
 The default 0.80 remains untuned until a sufficient real audit is applied.
+Use `export --news-file data/processed/news_clean.parquet --file data/audits/relevance_historical.csv`
+to validate and sample the full teammate archive without importing it into live news.
 
 ## Explanations
 

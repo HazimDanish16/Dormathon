@@ -4,6 +4,7 @@ import csv
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 import pytest
 
 from mymarket.config import Settings
@@ -114,3 +115,47 @@ def test_holdout_failure_does_not_reselect_threshold(tmp_path, monkeypatch):
     assert report["recommended_threshold"] == 0.
     assert report["validation"]["precision"] == 0.
     assert not report["ready_to_apply"]
+
+
+def historical_frame(count=40):
+    return pd.DataFrame([{"article_id": f"archive-{i}", "title": f"Chicken supply archive {i}",
+                          "summary": "Historical supply", "body": "Chicken prices", "source": "archive",
+                          "url": f"https://example.com/archive/{i}", "language": "en",
+                          "published_at": pd.Timestamp("2018-01-01", tz="Asia/Kuala_Lumpur")} for i in range(count)])
+
+
+def test_historical_audit_uses_full_archive_without_polluting_live_cache(tmp_path, monkeypatch):
+    settings, path = setup_audit(tmp_path, monkeypatch, count=5)
+    archive = tmp_path / "news_clean.parquet"
+    historical_frame().to_parquet(archive, index=False)
+    metadata = export_audit(settings, path, size=20, news_file=archive)
+    assert metadata["candidates"] == 40
+    assert metadata["sampled"] == 20
+    assert metadata["input"]["rows"] == 40
+    assert metadata["input"]["candidate_products"] == {"chicken": 40}
+    assert metadata["input"]["date_min"].startswith("2017-12-31")
+    assert len(metadata["input"]["sha256"]) == 64
+    assert len(ArticleStore(settings.sqlite_path).recent(hours=8760)) == 5
+    with path.open(encoding="utf-8-sig", newline="") as source:
+        rows = list(csv.DictReader(source))
+    assert all(row["article_id"].startswith("archive-") for row in rows)
+    assert len({row["article_id"] for row in rows}) == 20
+
+
+@pytest.mark.parametrize("invalid", ["cross_batch_duplicate", "missing_body", "naive_dates", "synthetic"])
+def test_invalid_historical_handoff_creates_no_audit(tmp_path, monkeypatch, invalid):
+    settings, path = setup_audit(tmp_path, monkeypatch, count=5)
+    archive = tmp_path / "news_clean.parquet"
+    frame = historical_frame(1025)
+    if invalid == "cross_batch_duplicate":
+        frame.loc[1024, "article_id"] = frame.loc[0, "article_id"]
+    elif invalid == "missing_body":
+        frame = frame.drop(columns="body")
+    elif invalid == "naive_dates":
+        frame["published_at"] = frame["published_at"].dt.tz_localize(None)
+    else:
+        frame["synthetic"] = True
+    frame.to_parquet(archive, index=False)
+    with pytest.raises(AppError):
+        export_audit(settings, path, news_file=archive)
+    assert not path.exists()
