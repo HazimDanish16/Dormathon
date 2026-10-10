@@ -414,10 +414,10 @@ Gemini:
 Backup, no key: install Ollama, run `ollama pull llama3.2:3b` (or another small model), set `LLM_PROVIDER=ollama`. Slower, fully local.
 
 ### M5. Audit the relevance filter (45 min)
-1. Run `python scripts/02_prepare_news.py --audit 120`. It writes `data/processed/audit_sample.csv` with 120 random alias-matched article-product pairs.
-2. Open in Excel. Add column `relevant` (1 or 0). Relevant means the article is really about that product's price or supply.
-3. Save. Run `python scripts/02_prepare_news.py --tune-filter`. It picks the embedding threshold for at least 80% precision.
-4. If precision stays under 70%, add `exclude_phrases` in `config/products.yaml` and repeat.
+1. Run `uv run python scripts/audit_relevance.py export --size 120`. It writes `data/audits/relevance.csv` and a provenance sidecar from cached real alias candidates, including scores below 0.80.
+2. Fill the existing `relevant` column with 1 or 0; only edit labels and optional notes. Relevant means the article concerns that product's price, costs, supply, or policy effects.
+3. Run `uv run python scripts/audit_relevance.py assess`. Threshold selection uses tuning rows; article-grouped holdout rows assess the selected threshold. See MANUAL_STEPS.md for sample-size and precision gates.
+4. Apply with `assess --apply` only when ready. If exclusions change or precision is poor, export a new sample with `--file`; small samples remain provisional. The audit does not measure alias recall or prediction accuracy.
 
 ### M6. Train on Colab (60 to 90 min)
 1. Locally run scripts 05. Output: `data/processed/examples.parquet`. Check label counts printed per product. If a product has under 300 examples, merge it into a product group in `products.yaml` and rerun.

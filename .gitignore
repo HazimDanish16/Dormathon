@@ -22,6 +22,7 @@ dist/
 data/raw/
 data/processed/
 data/refresh/
+data/audits/
 *.sqlite
 *.sqlite3
 *.sqlite-shm

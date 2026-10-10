@@ -151,6 +151,13 @@ or a slow exported pipeline may exceed the 60-second target; prewarm the encoder
 and verify real-data latency after handoff. No latency measurement from fixtures
 is claimed as real-model performance.
 
+## Relevance audit
+
+For human relevance review, run `uv run python scripts/audit_relevance.py export`.
+Label the CSV's `relevant` column, then run the command with `assess`.
+See `MANUAL_STEPS.md` for labeling rules and held-out threshold validation.
+The default 0.80 remains untuned until a sufficient real audit is applied.
+
 ## Explanations
 
 Without provider credentials or a model name, English/Malay templates work

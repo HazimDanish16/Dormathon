@@ -7,7 +7,7 @@ import numpy as np
 
 from mymarket.config import Settings, load_products
 from mymarket.errors import AppError
-from mymarket.filter.aliases import article_text, match_aliases
+from mymarket.filter.aliases import article_text, match_aliases, product_description
 from mymarket.filter.embed_filter import Embedder, filter_threshold
 from mymarket.store.db import ArticleStore
 from mymarket.model.predict import Predictor
@@ -55,7 +55,7 @@ class MarketService:
             text = article_text(article)
             for match in match_aliases(text, self.config, domain):
                 product = self.config.domains[match["domain"]].products[match["product"]]
-                description = product.description or f"Price and supply of {match['product'].replace('_', ' ')} in Malaysia. " + ", ".join(product.aliases_en + product.aliases_ms)
+                description = product_description(match["product"], product)
                 candidates.append((article, match))
                 texts.extend(["query: " + text, "passage: " + description])
         threshold, audited = filter_threshold(self.settings)

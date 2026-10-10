@@ -9,6 +9,11 @@ def article_text(article: dict) -> str:
     return ". ".join([article.get("title", ""), article.get("summary", ""), article.get("body", "")[:1500]])
 
 
+def product_description(product_id: str, product) -> str:
+    return product.description or (f"Price and supply of {product_id.replace('_', ' ')} in Malaysia. "
+                                   + ", ".join(product.aliases_en + product.aliases_ms))
+
+
 def contains(text: str, phrase: str) -> bool:
     pattern = r"(?<!\w)" + r"\s+".join(re.escape(word) for word in phrase.split()) + r"(?!\w)"
     return bool(re.search(pattern, text, re.IGNORECASE)) if phrase.strip() else False

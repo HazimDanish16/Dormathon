@@ -70,6 +70,11 @@ def filter_threshold(settings: Settings) -> tuple[float, bool]:
         threshold = float(data["threshold"])
         if not 0 <= threshold <= 1:
             raise ValueError("range")
+        if data.get("audited") is True and "config_sha256" in data:
+            fingerprint = hashlib.sha256((settings.config_dir / "products.yaml").read_bytes()).hexdigest()
+            if data["config_sha256"] != fingerprint or data.get("embedding_key") != Embedder(settings).key:
+                logger.warning("Relevance audit is stale; reverting to untuned 0.80")
+                return .80, False
         return threshold, data.get("audited") is True
     except Exception as exc:
         raise AppError("Invalid relevance threshold.", "filter_threshold.json requires threshold in [0,1] and audited boolean.") from exc
