@@ -14,13 +14,6 @@ from mymarket.service import MarketService
 logger = logging.getLogger(__name__)
 
 
-def pending(component: str) -> dict[str, Any]:
-    return {
-        "error": f"{component} is not implemented yet.",
-        "hint": "This is a server scaffold. Implement the pipeline before using this tool.",
-    }
-
-
 def create_server(settings: Settings | None = None) -> FastMCP:
     settings = settings or Settings.from_env()
     service = None
@@ -41,8 +34,8 @@ def create_server(settings: Settings | None = None) -> FastMCP:
     server = FastMCP(
         "mymarket",
         instructions=(
-            "Malaysian news and product-price awareness. list_domains and fetch_news are implemented. "
-            "Other tools return explicit scaffold errors. Awareness only, not financial advice."
+            "Malaysian news and product-price awareness. Predictions require compatible teammate Colab exports. "
+            "Fixture outputs are explicitly synthetic. Awareness only, not financial advice."
         ),
         log_level=settings.log_level,
     )
@@ -51,7 +44,7 @@ def create_server(settings: Settings | None = None) -> FastMCP:
     def list_domains() -> dict[str, Any]:
         """List configured domains, products, English/Malay aliases, and item mappings."""
         try:
-            return load_products(settings).model_dump(mode="json")
+            return {**load_products(settings).model_dump(mode="json"), "synthetic": settings.data_mode == "fixture"}
         except Exception:
             logger.exception("Unable to load product configuration")
             return {
@@ -70,7 +63,7 @@ def create_server(settings: Settings | None = None) -> FastMCP:
                 if any(source not in known_sources for source in sources):
                     return {"error": "Unknown news source.", "hint": "Use source IDs from config/sources.yaml."}
             articles = ArticleStore(settings.sqlite_path).recent(hours, sources, limit)
-            return {"articles": articles, "count": len(articles)}
+            return {"articles": articles, "count": len(articles), "synthetic": settings.data_mode == "fixture"}
         except Exception:
             logger.exception("Unable to read cached news")
             return {"error": "Unable to read cached news.",
@@ -97,8 +90,8 @@ def create_server(settings: Settings | None = None) -> FastMCP:
     def scan_alerts(
         domain: str | None = None, hours: int = 48, min_confidence: float = 0.55, lang: str = "en",
     ) -> dict[str, Any]:
-        """Scaffold: combine news, predictions, and grounded explanations; alerts are pending."""
-        return pending("Alert scanning")
+        """Combine cached relevant news, price predictions, context, and grounded explanations."""
+        return invoke("scan_alerts", domain=domain, hours=hours, min_confidence=min_confidence, lang=lang)
 
     @server.tool()
     def backtest_report(product: str | None = None) -> dict[str, Any]:
@@ -107,8 +100,8 @@ def create_server(settings: Settings | None = None) -> FastMCP:
 
     @server.tool()
     def forward_validation(product: str | None = None) -> dict[str, Any]:
-        """Scaffold: report matured live predictions; outcome scoring is pending."""
-        return pending("Forward validation")
+        """Report matured scored predictions, pending outcomes, exclusions, and per-model accuracy."""
+        return invoke("forward_validation", product=product)
 
     return server
 

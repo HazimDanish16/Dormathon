@@ -50,7 +50,7 @@ def test_stdio_discovery_and_tool_calls(tmp_path, entry_point):
                     assert {tool.name for tool in discovered.tools} == TOOLS
                     for name in TOOLS:
                         args = {"product": "chicken"} if name == "price_context" else {}
-                        if name == "filter_relevant":
+                        if name in {"filter_relevant", "scan_alerts"}:
                             args = {"domain": "unknown"}
                         result = await session.call_tool(name, args)
                         assert not result.isError
@@ -61,13 +61,13 @@ def test_stdio_discovery_and_tool_calls(tmp_path, entry_point):
                             assert payload["count"] == 1
                             assert payload["articles"][0]["title"] == "Chicken feed costs rise"
                             assert payload["articles"][0]["published_at"].endswith("+08:00")
-                        elif name == "filter_relevant":
+                        elif name in {"filter_relevant", "scan_alerts"}:
                             assert "error" in payload # Real embedding weights are deliberately not downloaded in tests.
                         elif name in {"predict_impact", "price_context", "backtest_report"}:
                             assert set(payload) == {"error", "hint"}
                         else:
-                            assert set(payload) == {"error", "hint"}
-                            assert "not implemented" in payload["error"]
+                            assert payload["scored"] == 0
+                            assert payload["accuracy"] is None
                     for args in ({"hours": 0}, {"limit": 1001}, {"sources": ["unknown"]}):
                         result = await session.call_tool("fetch_news", args)
                         assert set(json.loads(result.content[0].text)) == {"error", "hint"}

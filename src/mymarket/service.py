@@ -1,6 +1,7 @@
 """Application services shared by MCP and maintenance commands."""
 
 import json
+import time
 from urllib.parse import urlsplit
 
 import numpy as np
@@ -12,6 +13,8 @@ from mymarket.filter.embed_filter import Embedder, filter_threshold
 from mymarket.store.db import ArticleStore
 from mymarket.model.predict import Predictor
 from mymarket.prices.index import PriceIndex
+from mymarket.llm.explain import Explainer
+from mymarket.store.validation import PredictionLedger
 
 
 class MarketService:
@@ -21,6 +24,8 @@ class MarketService:
         self.embedder = Embedder(settings)
         self.predictor = Predictor(settings)
         self.prices = PriceIndex(settings)
+        self.explainer = Explainer(settings)
+        self.ledger = PredictionLedger(settings)
 
     @property
     def synthetic(self) -> bool:
@@ -106,3 +111,40 @@ class MarketService:
             metrics = {"product": product, "results": metrics["by_product"][product],
                        "model_version": bundle.manifest.model_version, "dataset_provenance": metrics["dataset_provenance"]}
         return self.response(available=True, metrics=metrics)
+
+    def scan_alerts(self, domain=None, hours=48, min_confidence=.55, lang="en"):
+        self.validate_domain(domain)
+        if lang not in {"en", "ms"} or not 0 <= min_confidence <= 1:
+            raise AppError("Invalid alert options.", "Use lang=en or ms and min_confidence=0..1.")
+        started = time.monotonic()
+        filtered = self.filter_relevant(domain, hours, deadline=started + 50)
+        alerts, warnings = [], list(filtered["warnings"])
+        deadline = min(started + 50, time.monotonic() + 30)
+        candidates = filtered["matches"][:100]
+        if len(filtered["matches"]) > 100:
+            warnings.append("Alert processing limited to the newest 100 article/product matches.")
+        for match in candidates:
+            if time.monotonic() >= started + 50:
+                warnings.append("Alert time budget reached; remaining matches were deferred.")
+                break
+            article = match["article"]
+            prediction = self.predictor.predict(article_text(article), [(match["product"], match["domain"])], min_confidence)[0]
+            self.ledger.log(article, prediction)
+            if prediction["abstained"]:
+                continue
+            context = self.prices.context(match["product"], days=30)
+            facts = {"article": {key: article[key] for key in ["title", "source", "published_at", "url"]},
+                     "prediction": {key: prediction[key] for key in ["product", "direction", "confidence", "probs", "triggers"]},
+                     "price_context": {key: context[key] for key in ["latest_index", "change_7d_pct", "change_30d_pct", "data_as_of"]}}
+            explanation = self.explainer.explain(facts, lang, deadline=deadline)
+            alerts.append({"article": facts["article"], **prediction, "price_context": context,
+                           "explanation": explanation, "synthetic": self.synthetic})
+        summary = "Tiada amaran yang memenuhi tahap keyakinan." if lang == "ms" else "No alerts met the confidence threshold."
+        if alerts:
+            summary = f"{len(alerts)} amaran untuk semakan." if lang == "ms" else f"{len(alerts)} alerts for review."
+        return self.response(alerts=alerts, domain_summary=summary, warnings=warnings)
+
+    def forward_validation(self, product=None):
+        if product is not None:
+            self.product_domain(product)
+        return self.response(**self.ledger.report(product))

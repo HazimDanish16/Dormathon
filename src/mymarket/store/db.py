@@ -10,6 +10,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from zoneinfo import ZoneInfo
+from mymarket.errors import AppError
 
 KL = ZoneInfo("Asia/Kuala_Lumpur")
 
@@ -55,6 +56,8 @@ class ArticleStore:
         self.path = path
         path.parent.mkdir(parents=True, exist_ok=True)
         with self.connection() as db:
+            if db.execute("PRAGMA user_version").fetchone()[0] > 2:
+                raise AppError("Database schema is newer than this app.", "Upgrade MyMarket; do not downgrade an existing database.")
             db.executescript("""
                 CREATE TABLE IF NOT EXISTS articles (
                     id INTEGER PRIMARY KEY, url TEXT NOT NULL UNIQUE, title TEXT NOT NULL,
@@ -84,6 +87,20 @@ class ArticleStore:
                     PRIMARY KEY(model_key, text_hash)
                 );
             """)
+            db.execute("BEGIN IMMEDIATE")
+            columns = {row["name"] for row in db.execute("PRAGMA table_info(articles)")}
+            for column, definition in [("date_estimated", "INTEGER NOT NULL DEFAULT 0"), ("body_source", "TEXT NOT NULL DEFAULT 'rss_summary'")]:
+                if column not in columns:
+                    db.execute(f"ALTER TABLE articles ADD COLUMN {column} {definition}")
+            columns = {row["name"] for row in db.execute("PRAGMA table_info(predictions)")}
+            additions = {"threshold": "REAL", "base_date": "TEXT", "target_date": "TEXT",
+                         "abstained": "INTEGER NOT NULL DEFAULT 0", "synthetic": "INTEGER NOT NULL DEFAULT 0",
+                         "eligible": "INTEGER NOT NULL DEFAULT 0"}
+            for column, definition in additions.items():
+                if column not in columns:
+                    db.execute(f"ALTER TABLE predictions ADD COLUMN {column} {definition}")
+            db.execute("CREATE INDEX IF NOT EXISTS predictions_target ON predictions(target_date)")
+            db.execute("PRAGMA user_version = 2")
 
     @contextmanager
     def connection(self):
