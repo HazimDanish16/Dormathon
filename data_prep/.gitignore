@@ -1,0 +1,9 @@
+# large or regenerable data
+data/raw/
+data/news/
+data/contract/news_clean.parquet
+data/processed/*.parquet
+.env
+.venv/
+__pycache__/
+*.egg-info/

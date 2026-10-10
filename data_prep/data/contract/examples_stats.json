@@ -1,0 +1,32 @@
+{
+  "articles": 153653,
+  "article_product_matches": 3626,
+  "per_product_matched": {
+    "rice": 1516,
+    "chicken": 1124,
+    "egg": 687,
+    "cooking_oil": 299
+  },
+  "dropped_missing_endpoint": 1496,
+  "dropped_low_premises": 68,
+  "examples": 2062,
+  "per_product": {
+    "chicken": 917,
+    "rice": 601,
+    "egg": 542,
+    "cooking_oil": 2
+  },
+  "first": "2023-12-20 16:00:00+00:00",
+  "last": "2026-09-09 16:00:00+00:00",
+  "horizon_days": 14,
+  "min_premises": 10,
+  "excluded_products": [
+    "cooking_oil"
+  ],
+  "per_product_after_exclusion": {
+    "chicken": 917,
+    "rice": 601,
+    "egg": 542
+  },
+  "examples_after_exclusion": 2060
+}

@@ -1,0 +1,59 @@
+{
+  "source_file": "news_v1.csv",
+  "columns": [
+    "content_id",
+    "title",
+    "text",
+    "section",
+    "category",
+    "content_tier",
+    "content_length",
+    "authors",
+    "published_date",
+    "keywords",
+    "summary",
+    "url",
+    "top_image"
+  ],
+  "time_convention": {
+    "name": "date_only",
+    "match_asis": 1.0,
+    "match_plus8": 1.0,
+    "sample_rows": 20000
+  },
+  "rows_read": 154445,
+  "rows_kept": 153653,
+  "rows_rejected": 792,
+  "rejected_by_reason": {
+    "near_duplicate_title": 446,
+    "duplicate_url": 344,
+    "unusable_date": 2
+  },
+  "empty_values_per_column": {
+    "content_id": 0,
+    "title": 0,
+    "text": 1,
+    "section": 1,
+    "category": 15,
+    "content_tier": 1,
+    "content_length": 2,
+    "authors": 142199,
+    "published_date": 1,
+    "keywords": 35782,
+    "summary": 277,
+    "url": 1,
+    "top_image": 2
+  },
+  "min_text_chars": 100,
+  "earliest_date": "2020-10-31",
+  "latest_date": "2026-10-09",
+  "articles_per_year": {
+    "2020": 1,
+    "2023": 79,
+    "2024": 50643,
+    "2025": 56523,
+    "2026": 46407
+  },
+  "dedup_rules": "normalised URL; content_id; normalised title within +-1 day (first occurrence kept)",
+  "rejected_listing_truncated": false
+}

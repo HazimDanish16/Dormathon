@@ -1,0 +1,24 @@
+{
+  "rows_input": 7178345,
+  "ratio": 3.0,
+  "window_days": 90,
+  "min_baseline_days": 3,
+  "exact_duplicates_dropped": 0,
+  "key_conflict_rows_rejected": 0,
+  "key_conflict_keys": 0,
+  "rows_rejected_total": 0,
+  "rejected_by_reason": {},
+  "rows_after_cleaning": 7178345,
+  "outliers_flagged": 593,
+  "rows_without_baseline": 39759,
+  "rows_valid_for_stats": 7177752,
+  "missing_values_input": {
+    "date": 0,
+    "premise_code": 0,
+    "item_code": 0,
+    "price": 0
+  },
+  "daily_rows": 27331,
+  "first_date": "2023-07-01",
+  "last_date": "2026-09-24"
+}

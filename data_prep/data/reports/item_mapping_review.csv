@@ -1,0 +1,81 @@
+item_code,item,unit,item_group,item_category,proposed_product,include,review_note,variant,suggested_include
+1127,AYAM BELANDA IMPORT,1kg,BARANGAN SEGAR,AYAM,chicken,no,"Turkey (ayam belanda), not chicken.",turkey,no
+1550,PAHA AYAM (CHICKEN DRUMSTICK),1kg,BARANGAN SEGAR,AYAM,chicken,no,"Chicken part, not whole chicken (brief: do not mix parts with whole chicken).",part,no
+1551,DADA AYAM (CHICKEN KEEL),1kg,BARANGAN SEGAR,AYAM,chicken,no,"Chicken part, not whole chicken (brief: do not mix parts with whole chicken).",part,no
+1552,THIGH AYAM,1kg,BARANGAN SEGAR,AYAM,chicken,no,"Chicken part, not whole chicken (brief: do not mix parts with whole chicken).",part,no
+1553,WHOLE LEG AYAM,1kg,BARANGAN SEGAR,AYAM,chicken,no,"Chicken part, not whole chicken (brief: do not mix parts with whole chicken).",part,no
+1804,KEPAK AYAM (CHICKEN WING),1kg,BARANGAN SEGAR,AYAM,chicken,no,"Chicken part, not whole chicken (brief: do not mix parts with whole chicken).",part,no
+3,AYAM HIDUP,1kg,BARANGAN SEGAR,AYAM,chicken,review,"Live chicken priced per kg live weight, a different basis from dressed chicken; suggest excluding.",live,no
+1364,AYAM TUA HIDUP,1kg,BARANGAN SEGAR,AYAM,chicken,review,Old hen sold live: different basis (live weight) and bird type; suggest excluding.,live_old_hen,no
+1,AYAM BERSIH - STANDARD,1kg,BARANGAN SEGAR,AYAM,chicken,yes,"Whole dressed chicken, per kg.",whole_dressed,yes
+2,AYAM BERSIH - SUPER,1kg,BARANGAN SEGAR,AYAM,chicken,yes,"Whole dressed chicken, per kg.",whole_dressed,yes
+246,MINYAK JAGUNG CAP MAZOLA,1kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,no,Corn oil: a different oil type and price level.,corn_oil,no
+1086,MINYAK JAGUNG CAP DAISY,1kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,no,Corn oil: a different oil type and price level.,corn_oil,no
+1087,MINYAK JAGUNG CAP DAISY,3 kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,no,Corn oil: a different oil type and price level.,corn_oil,no
+1088,MINYAK JAGUNG CAP MAZOLA,3 kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,no,Corn oil: a different oil type and price level.,corn_oil,no
+1089,MINYAK JAGUNG CAP VECORN,3 kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,no,Corn oil: a different oil type and price level.,corn_oil,no
+1090,MINYAK JAGUNG CAP VECORN,1kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,no,Corn oil: a different oil type and price level.,corn_oil,no
+1595,MINYAK JAGUNG CAP DAISY,2 kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,no,Corn oil: a different oil type and price level.,corn_oil,no
+1596,MINYAK JAGUNG CAP MAZOLA,2 kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,no,Corn oil: a different oil type and price level.,corn_oil,no
+1597,MINYAK JAGUNG CAP VECORN,2 kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,no,Corn oil: a different oil type and price level.,corn_oil,no
+918,MINYAK MASAK PAKET (PELBAGAI JENAMA),1kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,review,"1kg 'paket' oil, assumed to be the government-subsidised packet (inferred from the name; the lookup does not say). Subsidised and unsubsidised oil must not be mixed without approval; suggest excluding from the main index.",subsidised_packet_1kg,no
+254,MINYAK MASAK SEBATIAN CAP RED EAGLE,5 kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,yes,"Blended (sebatian) branded cooking oil. Kept as its own item, normalised before averaging.",branded_blended,yes
+257,MINYAK MASAK SEBATIAN CAP NEPTUNE,5 kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,yes,"Blended (sebatian) branded cooking oil. Kept as its own item, normalised before averaging.",branded_blended,yes
+260,MINYAK MASAK SEBATIAN CAP KNIFE,5 kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,yes,"Blended (sebatian) branded cooking oil. Kept as its own item, normalised before averaging.",branded_blended,yes
+263,MINYAK MASAK TULEN CAP BURUH,5 kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,yes,"Pure palm (tulen) branded cooking oil. Kept as its own item, normalised before averaging.",branded_pure_palm,yes
+266,MINYAK MASAK TULEN CAP SERI MURNI,5 kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,yes,"Pure palm (tulen) branded cooking oil. Kept as its own item, normalised before averaging.",branded_pure_palm,yes
+267,MINYAK MASAK TULEN CAP VESAWIT,1kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,yes,"Pure palm (tulen) branded cooking oil. Kept as its own item, normalised before averaging.",branded_pure_palm,yes
+1091,MINYAK MASAK SEBATIAN CAP RED EAGLE,1kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,yes,"Blended (sebatian) branded cooking oil. Kept as its own item, normalised before averaging.",branded_blended,yes
+1092,MINYAK MASAK SEBATIAN CAP NEPTUNE,1kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,yes,"Blended (sebatian) branded cooking oil. Kept as its own item, normalised before averaging.",branded_blended,yes
+1093,MINYAK MASAK SEBATIAN CAP KNIFE,1kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,yes,"Blended (sebatian) branded cooking oil. Kept as its own item, normalised before averaging.",branded_blended,yes
+1094,MINYAK MASAK TULEN CAP BURUH,1kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,yes,"Pure palm (tulen) branded cooking oil. Kept as its own item, normalised before averaging.",branded_pure_palm,yes
+1095,MINYAK MASAK TULEN CAP VESAWIT,5 kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,yes,"Pure palm (tulen) branded cooking oil. Kept as its own item, normalised before averaging.",branded_pure_palm,yes
+1100,MINYAK MASAK TULEN CAP SERI MURNI,1kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,yes,"Pure palm (tulen) branded cooking oil. Kept as its own item, normalised before averaging.",branded_pure_palm,yes
+1101,MINYAK MASAK TULEN CAP SERI MURNI,2 kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,yes,"Pure palm (tulen) branded cooking oil. Kept as its own item, normalised before averaging.",branded_pure_palm,yes
+1598,MINYAK MASAK SEBATIAN CAP RED EAGLE,2 kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,yes,"Blended (sebatian) branded cooking oil. Kept as its own item, normalised before averaging.",branded_blended,yes
+1599,MINYAK MASAK SEBATIAN CAP NEPTUNE,2 kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,yes,"Blended (sebatian) branded cooking oil. Kept as its own item, normalised before averaging.",branded_blended,yes
+1600,MINYAK MASAK SEBATIAN CAP KNIFE,2 kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,yes,"Blended (sebatian) branded cooking oil. Kept as its own item, normalised before averaging.",branded_blended,yes
+1601,MINYAK MASAK TULEN CAP BURUH,2 kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,yes,"Pure palm (tulen) branded cooking oil. Kept as its own item, normalised before averaging.",branded_pure_palm,yes
+1602,MINYAK MASAK TULEN CAP VESAWIT,2 kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,yes,"Pure palm (tulen) branded cooking oil. Kept as its own item, normalised before averaging.",branded_pure_palm,yes
+1934,MINYAK MASAK SEBATIAN CAP ADELA GOLD,1kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,yes,"Blended (sebatian) branded cooking oil. Kept as its own item, normalised before averaging.",branded_blended,yes
+1935,MINYAK MASAK SEBATIAN CAP ADELA GOLD,2 kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,yes,"Blended (sebatian) branded cooking oil. Kept as its own item, normalised before averaging.",branded_blended,yes
+1936,MINYAK MASAK SEBATIAN CAP ADELA GOLD,5 kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,yes,"Blended (sebatian) branded cooking oil. Kept as its own item, normalised before averaging.",branded_blended,yes
+1937,MINYAK MASAK TULEN CAP SAJI,1kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,yes,"Pure palm (tulen) branded cooking oil. Kept as its own item, normalised before averaging.",branded_pure_palm,yes
+1938,MINYAK MASAK TULEN CAP SAJI,2 kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,yes,"Pure palm (tulen) branded cooking oil. Kept as its own item, normalised before averaging.",branded_pure_palm,yes
+1939,MINYAK MASAK TULEN CAP SAJI,5 kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,yes,"Pure palm (tulen) branded cooking oil. Kept as its own item, normalised before averaging.",branded_pure_palm,yes
+1940,MINYAK MASAK TULEN CAP ALIF,1kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,yes,"Pure palm (tulen) branded cooking oil. Kept as its own item, normalised before averaging.",branded_pure_palm,yes
+1941,MINYAK MASAK TULEN CAP ALIF,2 kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,yes,"Pure palm (tulen) branded cooking oil. Kept as its own item, normalised before averaging.",branded_pure_palm,yes
+1942,MINYAK MASAK TULEN CAP ALIF,5 kg,BARANGAN BERBUNGKUS,MINYAK DAN LEMAK,cooking_oil,yes,"Pure palm (tulen) branded cooking oil. Kept as its own item, normalised before averaging.",branded_pure_palm,yes
+124,TELUR PUYUH,15 Biji,BARANGAN SEGAR,TELUR,egg,no,"Not a hen egg (quail, duck or salted).",other_egg,no
+125,TELUR ITIK,10 biji,BARANGAN SEGAR,TELUR,egg,no,"Not a hen egg (quail, duck or salted).",other_egg,no
+1820,TELUR MASIN,1 biji,BARANGAN SEGAR,TELUR,egg,no,"Not a hen egg (quail, duck or salted).",other_egg,no
+1821,TELUR MASIN,4 Biji,BARANGAN SEGAR,TELUR,egg,no,"Not a hen egg (quail, duck or salted).",other_egg,no
+1930,TELUR AYAM KAMPUNG,10 biji,BARANGAN SEGAR,TELUR,egg,review,Free-range (kampung) hen egg: different product and price level; suggest excluding.,hen_kampung,no
+118,TELUR AYAM GRED A (BERAT 65.0 GM HINGGA 69.9 GM SEBIJI),10 biji,BARANGAN SEGAR,TELUR,egg,yes,"Hen egg grade A, pack 10 biji. Grades and pack sizes stay separate items and are normalised per item before averaging.",hen_grade_A_10biji,yes
+119,TELUR AYAM GRED B (BERAT 60.0 GM HINGGA 64.9 GM),10 biji,BARANGAN SEGAR,TELUR,egg,yes,"Hen egg grade B, pack 10 biji. Grades and pack sizes stay separate items and are normalised per item before averaging.",hen_grade_B_10biji,yes
+120,TELUR AYAM GRED C (BERAT 55.0 GM HINGGA 59.9 GM SEBIJI),10 biji,BARANGAN SEGAR,TELUR,egg,yes,"Hen egg grade C, pack 10 biji. Grades and pack sizes stay separate items and are normalised per item before averaging.",hen_grade_C_10biji,yes
+1109,TELUR AYAM GRED A,30 biji,BARANGAN SEGAR,TELUR,egg,yes,"Hen egg grade A, pack 30 biji. Grades and pack sizes stay separate items and are normalised per item before averaging.",hen_grade_A_30biji,yes
+1110,TELUR AYAM GRED B,30 biji,BARANGAN SEGAR,TELUR,egg,yes,"Hen egg grade B, pack 30 biji. Grades and pack sizes stay separate items and are normalised per item before averaging.",hen_grade_B_30biji,yes
+1111,TELUR AYAM GRED C,30 biji,BARANGAN SEGAR,TELUR,egg,yes,"Hen egg grade C, pack 30 biji. Grades and pack sizes stay separate items and are normalised per item before averaging.",hen_grade_C_30biji,yes
+1474,BERAS BASMATHI - FAIZA (KASHMIR),5 kg,BARANGAN BERBUNGKUS,BERAS,rice,no,Basmati: different variety and pack size.,basmati,no
+1491,BERAS PULUT THAILAND (SUSU) PELBAGAI JENAMA,1kg,BARANGAN BERBUNGKUS,BERAS,rice,no,"Glutinous rice (pulut), 1kg pack: different variety, not comparable to white rice.",glutinous,no
+1492,BERAS PULUT THAILAND (BIASA) PELBAGAI JENAMA,1kg,BARANGAN BERBUNGKUS,BERAS,rice,no,"Glutinous rice (pulut), 1kg pack: different variety, not comparable to white rice.",glutinous,no
+992,BERAS CAP JATI (SST5%),10 kg,BARANGAN BERBUNGKUS,BERAS,rice,review,White rice; the lookup does not say whether it is local or imported (SST5% / Sabah brands) or confirm the grade. Mixing origins and grades needs a human decision.,white_unspecified,yes
+1445,BERAS CAP FAIZA EMAS (SST5%),10 kg,BARANGAN BERBUNGKUS,BERAS,rice,review,White rice; the lookup does not say whether it is local or imported (SST5% / Sabah brands) or confirm the grade. Mixing origins and grades needs a human decision.,white_unspecified,yes
+1581,BERAS CAP RAMBUTAN (SST5%),10 kg,BARANGAN BERBUNGKUS,BERAS,rice,review,White rice; the lookup does not say whether it is local or imported (SST5% / Sabah brands) or confirm the grade. Mixing origins and grades needs a human decision.,white_unspecified,yes
+1582,BERAS CAP JASMINE (SST5%),10 kg,BARANGAN BERBUNGKUS,BERAS,rice,review,White rice; the lookup does not say whether it is local or imported (SST5% / Sabah brands) or confirm the grade. Mixing origins and grades needs a human decision.,white_unspecified,yes
+1823,BERAS TKC SABAH CAP TQR 5%,10 kg,BARANGAN BERBUNGKUS,BERAS,rice,review,White rice; the lookup does not say whether it is local or imported (SST5% / Sabah brands) or confirm the grade. Mixing origins and grades needs a human decision.,white_unspecified,yes
+1824,BERAS TKC SUPER HUMA CAP KELISA EMAS (SABAH),10 kg,BARANGAN BERBUNGKUS,BERAS,rice,review,White rice; the lookup does not say whether it is local or imported (SST5% / Sabah brands) or confirm the grade. Mixing origins and grades needs a human decision.,white_unspecified,yes
+904,BERAS SUPER CAP RAMBUTAN 5% (IMPORT),10 kg,BARANGAN BERBUNGKUS,BERAS,rice,yes,"Imported white rice, 10kg bag. Brand items are normalised separately before averaging.",white_import_10kg,yes
+1583,BERAS SUPER CAP JATI TWR  5% (IMPORT),10 kg,BARANGAN BERBUNGKUS,BERAS,rice,yes,"Imported white rice, 10kg bag. Brand items are normalised separately before averaging.",white_import_10kg,yes
+1822,BERAS PUTIH IMPORT SABAH RICE VAGAS TOKOU,10 kg,BARANGAN BERBUNGKUS,BERAS,rice,yes,"Imported white rice, 10kg bag. Brand items are normalised separately before averaging.",white_import_10kg,yes
+1825,BERAS SUPER SAZARICE CAP ANGGUR (BERAS PUTIH IMPORT ),10 kg,BARANGAN BERBUNGKUS,BERAS,rice,yes,"Imported white rice, 10kg bag. Brand items are normalised separately before averaging.",white_import_10kg,yes
+1826,BERAS SUPER SAZARICE CAP RODA (BERAS PUTIH IMPORT),10 kg,BARANGAN BERBUNGKUS,BERAS,rice,yes,"Imported white rice, 10kg bag. Brand items are normalised separately before averaging.",white_import_10kg,yes
+1832,BERAS CAP BAO-BAO GOLDEN SARAWAK (SUPER IMPORT),10 kg,BARANGAN BERBUNGKUS,BERAS,rice,yes,"Imported white rice, 10kg bag. Brand items are normalised separately before averaging.",white_import_10kg,yes
+1833,BERAS PREMIUM CAP UNCLE TAN (SUPER IMPORT),10 kg,BARANGAN BERBUNGKUS,BERAS,rice,yes,"Imported white rice, 10kg bag. Brand items are normalised separately before averaging.",white_import_10kg,yes
+1902,BERAS SAZARICE SUPER WR (BERAS PUTIH IMPORT),10 kg,BARANGAN BERBUNGKUS,BERAS,rice,yes,"Imported white rice, 10kg bag. Brand items are normalised separately before averaging.",white_import_10kg,yes
+1903,BERAS KELAS MAHIR SUPER IMPORT RICE (5%),10 kg,BARANGAN BERBUNGKUS,BERAS,rice,yes,"Imported white rice, 10kg bag. Brand items are normalised separately before averaging.",white_import_10kg,yes
+1951,BERAS PREMIUM CAP 3A BOY (SUPER IMPORT),10 kg,BARANGAN BERBUNGKUS,BERAS,rice,yes,"Imported white rice, 10kg bag. Brand items are normalised separately before averaging.",white_import_10kg,yes
+2004,BERAS SUPER IMPORT CAP FAMILY,10 kg,BARANGAN BERBUNGKUS,BERAS,rice,yes,"Imported white rice, 10kg bag. Brand items are normalised separately before averaging.",white_import_10kg,yes
+2066,BERAS PUTIH CAP FAIZA EMAS (IMPORT),10 kg,BARANGAN BERBUNGKUS,BERAS,rice,yes,"Imported white rice, 10kg bag. Brand items are normalised separately before averaging.",white_import_10kg,yes
+2068,BERAS CAP JASMINE SUPER 5 SPECIAL (IMPORT),10 kg,BARANGAN BERBUNGKUS,BERAS,rice,yes,"Imported white rice, 10kg bag. Brand items are normalised separately before averaging.",white_import_10kg,yes
