@@ -23,12 +23,17 @@ data/raw/
 data/processed/
 *.sqlite
 *.sqlite3
+*.sqlite-shm
+*.sqlite-wal
+*.sqlite3-shm
+*.sqlite3-wal
 *.db
 *.db-shm
 *.db-wal
 *.log
 
 # Local tooling
+.tools/
 node_modules/
 .codex/
 .aws/

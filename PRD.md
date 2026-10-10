@@ -1,4 +1,4 @@
-# HargaRadar MCP: Product Requirements Document
+# MyMarket MCP: Product Requirements Document
 
 Version 0.1. Date: 2026-10-10. Status: hackathon MVP. Backend only.
 
@@ -244,7 +244,7 @@ Online (forward validation):
 
 ## 7. MCP tool spec
 
-Server name: `harga-radar`. Python `mcp` SDK (FastMCP). Transport: stdio (default), streamable HTTP optional.
+Server name: `mymarket`. Python `mcp` SDK (FastMCP). Transport: stdio (default), streamable HTTP optional.
 
 | Tool | Inputs | Returns |
 |---|---|---|
@@ -296,7 +296,7 @@ Tool rules: all tools return JSON. Never raise raw exceptions to the client. Ret
 ## 10. Repo layout
 
 ```
-harga-radar/
+mymarket/
   README.md
   PRD.md
   requirements.txt
@@ -316,7 +316,7 @@ harga-radar/
     07_evaluate.py
     daily_refresh.py
   notebooks/train_colab.ipynb
-  src/harga/
+  src/mymarket/
     ingest/ (rss.py, fetch_body.py)
     filter/ (aliases.py, embed_filter.py)
     prices/ (index.py, fuel.py)
@@ -362,7 +362,7 @@ Do them in order. Everything else the coding agent does.
 2. Terminal:
 ```bash
 pip install uv
-git clone <your repo> harga-radar && cd harga-radar
+git clone <your repo> mymarket && cd mymarket
 uv venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 uv pip install -r requirements.txt
@@ -415,7 +415,7 @@ Backup, no key: install Ollama, run `ollama pull llama3.2:3b` (or another small 
 
 ### M6. Train on Colab (60 to 90 min)
 1. Locally run scripts 05. Output: `data/processed/examples.parquet`. Check label counts printed per product. If a product has under 300 examples, merge it into a product group in `products.yaml` and rerun.
-2. Make a Drive folder `harga-radar`. Upload `examples.parquet`.
+2. Make a Drive folder `mymarket`. Upload `examples.parquet`.
 3. Go to colab.research.google.com. New notebook (or upload `notebooks/train_colab.ipynb`).
 4. Runtime, Change runtime type, T4 GPU, Save.
 5. Cell 1:
@@ -439,7 +439,7 @@ drive.mount('/content/drive')
 ### M7. Connect the MCP server (15 min)
 1. Test first with Inspector:
 ```bash
-npx @modelcontextprotocol/inspector uv run python -m harga.mcp_server
+npx @modelcontextprotocol/inspector uv run python -m mymarket.mcp_server
 ```
 Open the URL it prints. Call `list_domains`, then `scan_alerts`.
 2. Claude Desktop config file:
@@ -448,9 +448,9 @@ Open the URL it prints. Call `list_domains`, then `scan_alerts`.
 ```json
 {
   "mcpServers": {
-    "harga-radar": {
+    "mymarket": {
       "command": "uv",
-      "args": ["--directory", "/ABSOLUTE/PATH/harga-radar", "run", "python", "-m", "harga.mcp_server"]
+      "args": ["--directory", "/ABSOLUTE/PATH/mymarket", "run", "python", "-m", "mymarket.mcp_server"]
     }
   }
 }
@@ -459,7 +459,7 @@ Open the URL it prints. Call `list_domains`, then `scan_alerts`.
 
 ### M8. Forward validation job (15 min)
 1. Run once by hand: `python scripts/daily_refresh.py`. It downloads the current month price file, scans news, logs predictions, scores matured ones.
-2. Schedule daily. Mac/Linux cron: `0 14 * * * cd /path/harga-radar && .venv/bin/python scripts/daily_refresh.py`. Windows: Task Scheduler, daily 14:00.
+2. Schedule daily. Mac/Linux cron: `0 14 * * * cd /path/mymarket && .venv/bin/python scripts/daily_refresh.py`. Windows: Task Scheduler, daily 14:00.
 3. PriceCatcher refreshes at 12:00 daily, so 14:00 is safe.
 
 ### M9. Demo prep (30 min)

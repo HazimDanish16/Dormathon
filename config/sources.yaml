@@ -1,0 +1,17 @@
+# URLs supplied by PRD.md; availability has not been checked by this scaffold.
+sources:
+  malay_mail:
+    name: Malay Mail
+    url: https://www.malaymail.com/feed/rss/malaysia
+    enabled: true
+    date_from_article: false
+  bernama:
+    name: Bernama
+    url: https://www.bernama.com/en/rssfeed.php
+    enabled: true
+    date_from_article: true # No pubDate in the documented feed.
+  fmt:
+    name: Free Malaysia Today
+    url: https://www.freemalaysiatoday.com/feed/
+    enabled: false # Enable after confirming the feed works.
+# Add The Star only once a feed URL has been confirmed.

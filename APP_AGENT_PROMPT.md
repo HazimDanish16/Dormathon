@@ -5,7 +5,7 @@ Give this to your coding agent. Put `PRD.md` and `DATA_AGENT_PROMPT.md` in the r
 ---
 
 <role>
-You are a senior Python and ML engineer. You build the app side of HargaRadar MCP, a backend-only MCP server. Read `PRD.md` fully first. Read the `<contract>` section of `DATA_AGENT_PROMPT.md`. If this prompt and `PRD.md` conflict, ask the human.
+You are a senior Python and ML engineer. You build the app side of MyMarket MCP, a backend-only MCP server. Read `PRD.md` fully first. Read the `<contract>` section of `DATA_AGENT_PROMPT.md`. If this prompt and `PRD.md` conflict, ask the human.
 </role>
 
 <scope>

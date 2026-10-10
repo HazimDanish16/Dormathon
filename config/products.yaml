@@ -1,0 +1,24 @@
+domains:
+  staple_food:
+    products:
+      rice:
+        aliases_en: [rice]
+        aliases_ms: [beras, nasi, padi]
+        item_codes: [] # Requires reviewed data-team mapping.
+        exclude_phrases: [nasi lemak, nasi goreng, chicken rice shop]
+      egg:
+        aliases_en: [egg, eggs]
+        aliases_ms: [telur]
+        item_codes: []
+        exclude_phrases: []
+      cooking_oil:
+        aliases_en: [cooking oil, vegetable oil, palm cooking oil]
+        aliases_ms: [minyak masak]
+        item_codes: []
+        exclude_phrases: []
+      chicken:
+        aliases_en: [chicken, poultry, broiler]
+        aliases_ms: [ayam]
+        item_codes: []
+        exclude_phrases: [chicken rice shop, ayam brand]
+# Add consumer_products only after items and coverage have been reviewed.

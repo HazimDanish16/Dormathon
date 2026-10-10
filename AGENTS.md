@@ -2,19 +2,19 @@
 
 ## Project Structure & Module Organization
 
-HargaRadar is a planned Python 3.11 backend-only MCP server for Malaysian news and product-price awareness. Currently, this workspace contains `PRD.md` and `APP_AGENT_PROMPT.md` only. Read both before implementation; their phase instructions do not authorize work beyond the current task.
+MyMarket is a Python 3.11 backend-only MCP server for Malaysian news and product-price awareness. The stdio scaffold and configuration exist; only `list_domains` is implemented. Read `PRD.md` and `APP_AGENT_PROMPT.md` before implementation; their phase instructions do not authorize work beyond the current task.
 
-Follow the planned layout: `src/harga/` for ingestion, relevance filtering, price context, prediction, explanations, storage, and `mcp_server.py`; `config/` for product mappings and feeds; `scripts/` for offline pipelines and refresh jobs; `notebooks/` for Colab training; and `tests/fixtures/` for clearly named `FAKE` datasets. Keep raw downloads in `data/raw/`, processed inputs in `data/processed/`, and model artifacts alongside `metrics.json` in `models/`. Ignore large datasets and runtime caches.
+Follow the planned layout: `src/mymarket/` for ingestion, relevance filtering, price context, prediction, explanations, storage, and `mcp_server.py`; `config/` for product mappings and feeds; `scripts/` for offline pipelines and refresh jobs; `notebooks/` for Colab training; and `tests/fixtures/` for clearly named `FAKE` datasets. Keep raw downloads in `data/raw/`, processed inputs in `data/processed/`, and model artifacts alongside `metrics.json` in `models/`. Ignore large datasets and runtime caches.
 
 ## Build, Test, and Development Commands
 
-These commands apply once the scaffold and dependencies exist; they are not currently runnable end to end:
+Use `pyproject.toml` for dependency declarations and `uv.lock` for reproducible installs. A local Windows uv executable is available at `.tools/uv/uv.exe` if uv is not on PATH.
 
-- `uv venv`: create the local environment; activate with `.venv\Scripts\Activate.ps1` on Windows.
-- `uv pip install -r requirements.txt`: install project dependencies.
-- `uv run pytest`: run the test suite.
-- `uv run python -m harga.mcp_server`: start the MCP server, once `harga` is importable from `src/`.
-- `npx @modelcontextprotocol/inspector uv run python -m harga.mcp_server`: inspect and exercise MCP tools.
+- `uv sync --locked`: create `.venv` and install runtime and development dependencies.
+- `uv sync --locked --extra training`: include optional LightGBM.
+- `uv run pytest`: run configuration and stdio integration tests.
+- `uv run python -m mymarket.mcp_server`: start the stdio MCP server.
+- `npx @modelcontextprotocol/inspector uv run python -m mymarket.mcp_server`: inspect and exercise MCP tools.
 
 ## Coding Style & Naming Conventions
 
@@ -26,7 +26,7 @@ Use pytest with `test_*.py` files. Cover alias exclusions, price-index calculati
 
 ## Commit & Pull Request Guidelines
 
-No Git history is available to establish conventions. Prefer concise imperative commits, such as `Add RSS ingestion cache`. PRs should explain behavior, link relevant requirements or issues, and report validation results. Label fixture metrics as fake.
+The initial commit uses a concise imperative subject. Follow that style, such as `Add RSS ingestion cache`. PRs should explain behavior, link relevant requirements or issues, and report validation results. Label fixture metrics as fake.
 
 ## Security & Data Boundaries
 
