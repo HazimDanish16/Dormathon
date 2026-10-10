@@ -5,6 +5,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from datetime import datetime, timezone
 
 import anyio
 import pytest
@@ -13,6 +14,7 @@ from mcp.client.stdio import StdioServerParameters, stdio_client
 
 from mymarket.config import Settings
 from mymarket.mcp_server import create_server
+from mymarket.store.db import Article, ArticleStore
 
 ROOT = Path(__file__).resolve().parents[1]
 TOOLS = {
@@ -23,6 +25,12 @@ TOOLS = {
 
 @pytest.mark.parametrize("entry_point", ["module", "console"])
 def test_stdio_discovery_and_tool_calls(tmp_path, entry_point):
+    now = datetime.now(timezone.utc)
+    database = tmp_path / "test.sqlite3"
+    ArticleStore(database).insert(Article(
+        "https://example.com/news", "Chicken feed costs rise", "malay_mail",
+        now, "Test article summary", "Test article body", "en", now,
+    ))
     async def exercise():
         params = StdioServerParameters(
             command=(sys.executable if entry_point == "module" else str(
@@ -30,7 +38,8 @@ def test_stdio_discovery_and_tool_calls(tmp_path, entry_point):
             )),
             args=["-m", "mymarket.mcp_server"] if entry_point == "module" else [],
             cwd=tmp_path,
-            env={**os.environ, "MYMARKET_PROJECT_ROOT": str(ROOT), "MYMARKET_CONFIG_DIR": "config"},
+            env={**os.environ, "MYMARKET_PROJECT_ROOT": str(ROOT), "MYMARKET_CONFIG_DIR": "config",
+                 "MYMARKET_DATABASE_PATH": str(database)},
         )
         with anyio.fail_after(30):
             async with stdio_client(params) as (read, write):
@@ -46,9 +55,16 @@ def test_stdio_discovery_and_tool_calls(tmp_path, entry_point):
                         payload = json.loads(result.content[0].text)
                         if name == "list_domains":
                             assert "chicken" in payload["domains"]["staple_food"]["products"]
+                        elif name == "fetch_news":
+                            assert payload["count"] == 1
+                            assert payload["articles"][0]["title"] == "Chicken feed costs rise"
+                            assert payload["articles"][0]["published_at"].endswith("+08:00")
                         else:
                             assert set(payload) == {"error", "hint"}
                             assert "not implemented" in payload["error"]
+                    for args in ({"hours": 0}, {"limit": 1001}, {"sources": ["unknown"]}):
+                        result = await session.call_tool("fetch_news", args)
+                        assert set(json.loads(result.content[0].text)) == {"error", "hint"}
 
     anyio.run(exercise)
 

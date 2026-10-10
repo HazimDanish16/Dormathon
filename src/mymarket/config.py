@@ -45,6 +45,11 @@ class Settings:
     project_root: Path
     config_dir: Path
     log_level: str = "INFO"
+    database_path: Path | None = None
+
+    @property
+    def sqlite_path(self) -> Path:
+        return self.database_path or self.project_root / "data" / "mymarket.sqlite3"
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -56,7 +61,10 @@ class Settings:
         level = (values.get("MYMARKET_LOG_LEVEL") or "INFO").upper()
         if level not in {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}:
             raise ValueError("MYMARKET_LOG_LEVEL must be DEBUG, INFO, WARNING, ERROR, or CRITICAL")
-        return cls(root, config_dir.resolve(), level)
+        database_path = Path(values.get("MYMARKET_DATABASE_PATH") or "data/mymarket.sqlite3")
+        if not database_path.is_absolute():
+            database_path = root / database_path
+        return cls(root, config_dir.resolve(), level, database_path.resolve())
 
 
 def load_products(settings: Settings) -> ProductsConfig:

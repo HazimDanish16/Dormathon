@@ -1,4 +1,4 @@
-"""Stdio MCP entry point and explicit placeholders for the planned pipeline."""
+"""Stdio tools for configuration and cached news, with placeholders for ML."""
 
 import logging
 import sys
@@ -7,6 +7,7 @@ from typing import Any
 from mcp.server.fastmcp import FastMCP
 
 from mymarket.config import Settings, load_products, load_sources
+from mymarket.store.db import ArticleStore
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +24,7 @@ def create_server(settings: Settings | None = None) -> FastMCP:
     server = FastMCP(
         "mymarket",
         instructions=(
-            "Malaysian news and product-price awareness. Only list_domains is implemented. "
+            "Malaysian news and product-price awareness. list_domains and fetch_news are implemented. "
             "Other tools return explicit scaffold errors. Awareness only, not financial advice."
         ),
         log_level=settings.log_level,
@@ -43,8 +44,20 @@ def create_server(settings: Settings | None = None) -> FastMCP:
 
     @server.tool()
     def fetch_news(hours: int = 48, sources: list[str] | None = None, limit: int = 100) -> dict[str, Any]:
-        """Scaffold: read recent articles from the SQLite cache; ingestion is pending."""
-        return pending("News ingestion and storage")
+        """Read cached news, filtered by source IDs. Poll feeds separately to refresh the cache."""
+        try:
+            if not 1 <= hours <= 8760 or not 1 <= limit <= 1000:
+                return {"error": "Invalid news query.", "hint": "Use hours=1..8760 and limit=1..1000."}
+            if sources is not None:
+                known_sources = load_sources(settings).sources
+                if any(source not in known_sources for source in sources):
+                    return {"error": "Unknown news source.", "hint": "Use source IDs from config/sources.yaml."}
+            articles = ArticleStore(settings.sqlite_path).recent(hours, sources, limit)
+            return {"articles": articles, "count": len(articles)}
+        except Exception:
+            logger.exception("Unable to read cached news")
+            return {"error": "Unable to read cached news.",
+                    "hint": "Check MYMARKET_DATABASE_PATH and run scripts/poll_news.py to populate the cache."}
 
     @server.tool()
     def filter_relevant(domain: str | None = None, hours: int = 48) -> dict[str, Any]:

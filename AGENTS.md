@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-MyMarket is a Python 3.11 backend-only MCP server for Malaysian news and product-price awareness. The stdio scaffold and configuration exist; only `list_domains` is implemented. Read `PRD.md` and `APP_AGENT_PROMPT.md` before implementation; their phase instructions do not authorize work beyond the current task.
+MyMarket is a Python 3.11 backend-only MCP server for Malaysian news and product-price awareness. Configuration, live ingestion, SQLite storage, `list_domains`, and `fetch_news` are implemented; ML tools remain placeholders. Read `PRD.md` and `APP_AGENT_PROMPT.md` before implementation; their phase instructions do not authorize work beyond the current task.
 
 Follow the planned layout: `src/mymarket/` for ingestion, relevance filtering, price context, prediction, explanations, storage, and `mcp_server.py`; `config/` for product mappings and feeds; `scripts/` for offline pipelines and refresh jobs; `notebooks/` for Colab training; and `tests/fixtures/` for clearly named `FAKE` datasets. Keep raw downloads in `data/raw/`, processed inputs in `data/processed/`, and model artifacts alongside `metrics.json` in `models/`. Ignore large datasets and runtime caches.
 
@@ -13,6 +13,7 @@ Use `pyproject.toml` for dependency declarations and `uv.lock` for reproducible 
 - `uv sync --locked`: create `.venv` and install runtime and development dependencies.
 - `uv sync --locked --extra training`: include optional LightGBM.
 - `uv run pytest`: run configuration and stdio integration tests.
+- `uv run python scripts/poll_news.py`: poll feeds and populate the SQLite cache.
 - `uv run python -m mymarket.mcp_server`: start the stdio MCP server.
 - `npx @modelcontextprotocol/inspector uv run python -m mymarket.mcp_server`: inspect and exercise MCP tools.
 

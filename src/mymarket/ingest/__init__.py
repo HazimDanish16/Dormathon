@@ -1,1 +1,1 @@
-"""RSS ingestion and article fetching (pending implementation)."""
+"""RSS polling and article fetching with robots checks and summary fallback."""

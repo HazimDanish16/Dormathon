@@ -1,8 +1,9 @@
 # MyMarket MCP
 
 Backend-only MCP server for Malaysian news and product-price awareness.
-The stdio server scaffold exposes all eight planned tools. `list_domains` reads
-the product configuration; the other seven return explicit JSON errors until
+The stdio server exposes all eight planned tools. `list_domains` reads
+the product configuration and `fetch_news` queries the SQLite news cache.
+The other six return explicit JSON errors until
 their pipelines are implemented. There are no real predictions or metrics yet.
 
 ## Development setup
@@ -67,11 +68,51 @@ return `{"error": "...", "hint": "..."}`.
   pending verification. Feed availability has not been tested by this scaffold.
 - `.env`: optional `MYMARKET_CONFIG_DIR` and `MYMARKET_LOG_LEVEL` overrides; environment
   variables take precedence. Relative config paths resolve from the project root.
+- `MYMARKET_DATABASE_PATH`: SQLite location, defaulting to `data/mymarket.sqlite3`.
+  Relative database paths also resolve from the project root. Runtime databases are ignored by Git.
 - `src/mymarket/`: entry point and config loader, with packages reserved for ingestion,
   filtering, prices, models, explanations, and SQLite storage.
-- `tests/`: YAML validation and a real subprocess MCP stdio test.
+- `tests/`: configuration, ingestion, cache, and subprocess MCP stdio tests.
 
 Development installs are editable. If installing a wheel elsewhere, set
 `MYMARKET_PROJECT_ROOT` to a directory containing `config/` and optional `.env`.
 The missing `DATA_AGENT_PROMPT.md` contract is required before creating data
 fixtures. No historical data or model weights are downloaded by the scaffold.
+
+## Poll and query news
+
+```powershell
+uv run python scripts/poll_news.py
+```
+
+This standalone command prints a JSON report with status, item count, inserted
+articles, duplicates, skipped entries, and newest publication date per source.
+One failing source does not stop the others. Exit code 1 means startup failed,
+all enabled sources failed, or no sources were enabled. A partial success exits 0;
+check the report for individual source failures.
+
+Schedule this command every few hours from the repository directory using
+Windows Task Scheduler or cron. Do not overlap polling jobs. RSS feeds contain
+only recent entries, so regular polling is needed to build history.
+
+The poller respects robots.txt and waits at least one second between requests to
+the same host, honoring longer crawl delays. It skips article fetching when RSS
+already contains sufficient text and a publication date. Plain Scrapling
+`Fetcher` uses no browser impersonation or stealth headers. Blocked, short,
+paywalled, or failed article responses fall back to RSS text. Missing publication
+dates are extracted from article metadata when possible; otherwise fetch time is
+stored with `date_estimated=true`. Both the article body and its provenance are cached.
+
+Call `fetch_news` through Inspector with, for example:
+
+```json
+{"hours": 48, "sources": ["malay_mail", "bernama"], "limit": 20}
+```
+
+It returns only cached articles, with publication timestamps in Asia/Kuala_Lumpur.
+An empty cache returns an empty article list. Use source IDs from `sources.yaml`;
+unknown IDs and invalid query ranges return JSON errors.
+
+Malay Mail and Bernama passed a live polling check during development. Confirm
+the URLs in a browser before scheduling; enable FMT only after it works, and add
+The Star only after copying a valid RSS URL from its RSS page.
