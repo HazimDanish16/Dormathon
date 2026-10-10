@@ -31,6 +31,7 @@ data/processed/
 *.db-shm
 *.db-wal
 *.log
+models/*.joblib
 
 # Local tooling
 .tools/

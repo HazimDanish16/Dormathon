@@ -8,6 +8,8 @@ from mcp.server.fastmcp import FastMCP
 
 from mymarket.config import Settings, load_products, load_sources
 from mymarket.store.db import ArticleStore
+from mymarket.errors import AppError
+from mymarket.service import MarketService
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +23,21 @@ def pending(component: str) -> dict[str, Any]:
 
 def create_server(settings: Settings | None = None) -> FastMCP:
     settings = settings or Settings.from_env()
+    service = None
+    def app():
+        nonlocal service
+        if service is None:
+            service = MarketService(settings)
+        return service
+
+    def invoke(method, **kwargs):
+        try:
+            return getattr(app(), method)(**kwargs)
+        except AppError as exc:
+            return exc.payload()
+        except Exception:
+            logger.exception("Tool failed: %s", method)
+            return {"error": "Unable to complete request.", "hint": "Check server logs, configuration, and handoff inputs."}
     server = FastMCP(
         "mymarket",
         instructions=(
@@ -61,8 +78,8 @@ def create_server(settings: Settings | None = None) -> FastMCP:
 
     @server.tool()
     def filter_relevant(domain: str | None = None, hours: int = 48) -> dict[str, Any]:
-        """Scaffold: match cached articles to products; relevance filtering is pending."""
-        return pending("Relevance filtering")
+        """Match cached articles to products using bilingual aliases and CPU embeddings."""
+        return invoke("filter_relevant", domain=domain, hours=hours)
 
     @server.tool()
     def predict_impact(

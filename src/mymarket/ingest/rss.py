@@ -9,6 +9,7 @@ import feedparser
 import httpx
 
 from mymarket.config import Settings, load_sources
+from mymarket.errors import AppError
 from mymarket.ingest.fetch_body import fetch_body, plain_text
 from mymarket.ingest.network import FetchPolicy, USER_AGENT
 from mymarket.store.db import Article, ArticleStore, canonical_url
@@ -18,6 +19,8 @@ logger = logging.getLogger(__name__)
 
 def poll_news(settings: Settings, client: httpx.Client | None = None,
               policy: FetchPolicy | None = None) -> dict:
+    if settings.data_mode == "fixture":
+        raise AppError("Live polling is disabled in fixture mode.", "Use real mode for live feeds; fixtures must remain synthetic.")
     sources = load_sources(settings).sources
     store = ArticleStore(settings.sqlite_path)
     owns_client = client is None

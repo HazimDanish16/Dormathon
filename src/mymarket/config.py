@@ -19,6 +19,7 @@ class Product(ConfigModel):
     aliases_ms: list[str] = Field(default_factory=list)
     item_codes: list[Annotated[int, Field(ge=0)]] = Field(default_factory=list)
     exclude_phrases: list[str] = Field(default_factory=list)
+    description: str | None = None
 
 
 class Domain(ConfigModel):
@@ -46,10 +47,30 @@ class Settings:
     config_dir: Path
     log_level: str = "INFO"
     database_path: Path | None = None
+    data_mode: str = "real"
+    data_dir: Path | None = None
+    model_dir: Path | None = None
+    embedding_revision: str = "614241f622f53c4eeff9890bdc4f31cfecc418b3"
 
     @property
     def sqlite_path(self) -> Path:
-        return self.database_path or self.project_root / "data" / "mymarket.sqlite3"
+        default = "FAKE.sqlite3" if self.data_mode == "fixture" else "mymarket.sqlite3"
+        return self.database_path or self.project_root / "data" / default
+
+    @property
+    def processed_path(self) -> Path:
+        default = "tests/fixtures" if self.data_mode == "fixture" else "data/processed"
+        return self.data_dir or self.project_root / default
+
+    @property
+    def artifacts_path(self) -> Path:
+        return self.model_dir or self.project_root / "models"
+
+    def data_file(self, name: str) -> Path:
+        return self.processed_path / (("FAKE_" if self.data_mode == "fixture" else "") + name)
+
+    def environment(self) -> dict:
+        return {**dotenv_values(self.project_root / ".env"), **os.environ}
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -61,10 +82,17 @@ class Settings:
         level = (values.get("MYMARKET_LOG_LEVEL") or "INFO").upper()
         if level not in {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}:
             raise ValueError("MYMARKET_LOG_LEVEL must be DEBUG, INFO, WARNING, ERROR, or CRITICAL")
-        database_path = Path(values.get("MYMARKET_DATABASE_PATH") or "data/mymarket.sqlite3")
-        if not database_path.is_absolute():
-            database_path = root / database_path
-        return cls(root, config_dir.resolve(), level, database_path.resolve())
+        mode = values.get("MYMARKET_DATA_MODE") or "real"
+        if mode not in {"real", "fixture"}:
+            raise ValueError("MYMARKET_DATA_MODE must be real or fixture")
+        def path(key, default):
+            result = Path(values.get(key) or default)
+            return (root / result).resolve() if not result.is_absolute() else result.resolve()
+        return cls(root, config_dir.resolve(), level,
+                   path("MYMARKET_DATABASE_PATH", "data/FAKE.sqlite3" if mode == "fixture" else "data/mymarket.sqlite3"),
+                   mode, path("MYMARKET_DATA_DIR", "tests/fixtures" if mode == "fixture" else "data/processed"),
+                   path("MYMARKET_MODEL_DIR", "models"),
+                   values.get("MYMARKET_EMBEDDING_REVISION") or cls.embedding_revision)
 
 
 def load_products(settings: Settings) -> ProductsConfig:

@@ -79,6 +79,10 @@ class ArticleStore:
                     prediction_id INTEGER PRIMARY KEY REFERENCES predictions(id),
                     realized_ret REAL NOT NULL, realized_label TEXT NOT NULL, scored_at TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS embeddings (
+                    model_key TEXT NOT NULL, text_hash TEXT NOT NULL, vector TEXT NOT NULL,
+                    PRIMARY KEY(model_key, text_hash)
+                );
             """)
 
     @contextmanager
@@ -126,12 +130,14 @@ class ArticleStore:
             return True
 
     def recent(self, hours: int = 48, sources: list[str] | None = None, limit: int = 100,
-               now: datetime | None = None) -> list[dict]:
+               now: datetime | None = None, include_body: bool = False) -> list[dict]:
         if not 1 <= hours <= 8760 or not 1 <= limit <= 1000:
             raise ValueError("hours must be 1..8760 and limit must be 1..1000")
         now = now or datetime.now(timezone.utc)
         query = """SELECT id, title, source, published_at, url, summary, date_estimated
                    FROM articles WHERE published_at BETWEEN ? AND ?"""
+        if include_body:
+            query = query.replace("summary, date_estimated", "summary, body, lang, date_estimated")
         params = [utc_stamp(now - timedelta(hours=hours)), utc_stamp(now)]
         if sources is not None:
             if not sources:

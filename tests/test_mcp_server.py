@@ -50,6 +50,8 @@ def test_stdio_discovery_and_tool_calls(tmp_path, entry_point):
                     assert {tool.name for tool in discovered.tools} == TOOLS
                     for name in TOOLS:
                         args = {"product": "chicken"} if name == "price_context" else {}
+                        if name == "filter_relevant":
+                            args = {"domain": "unknown"}
                         result = await session.call_tool(name, args)
                         assert not result.isError
                         payload = json.loads(result.content[0].text)
@@ -59,6 +61,8 @@ def test_stdio_discovery_and_tool_calls(tmp_path, entry_point):
                             assert payload["count"] == 1
                             assert payload["articles"][0]["title"] == "Chicken feed costs rise"
                             assert payload["articles"][0]["published_at"].endswith("+08:00")
+                        elif name == "filter_relevant":
+                            assert "error" in payload # Real embedding weights are deliberately not downloaded in tests.
                         else:
                             assert set(payload) == {"error", "hint"}
                             assert "not implemented" in payload["error"]
