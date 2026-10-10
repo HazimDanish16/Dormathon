@@ -26,6 +26,9 @@ This validates all rows and samples the entire archive, including older dates;
 it does not insert historical news into the live cache. Label that CSV, then
 assess with `--file data/audits/relevance_historical.csv`. Its sidecar records
 the input hash, dates, source counts, and product candidate counts.
+The article-grouped validation partition targets 30% of sampled articles and
+includes at least five articles per sampled product when available. All pairs
+from one article stay together; labels and similarity scores do not select the split.
 
 1. Run `uv run python scripts/audit_relevance.py export --size 120`. It samples
    real cached alias matches, including those below the default threshold.

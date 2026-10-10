@@ -2,6 +2,7 @@
 
 import csv
 from pathlib import Path
+import random
 
 import numpy as np
 import pandas as pd
@@ -9,7 +10,7 @@ import pytest
 
 from mymarket.config import Settings
 from mymarket.errors import AppError
-from mymarket.filter.audit import FIELDS, assess_audit, export_audit
+from mymarket.filter.audit import FIELDS, assess_audit, export_audit, holdout_ids
 from mymarket.filter.embed_filter import Embedder, filter_threshold
 from mymarket.store.db import ArticleStore, utc_stamp
 from datetime import datetime, timezone
@@ -122,6 +123,16 @@ def historical_frame(count=40):
                           "summary": "Historical supply", "body": "Chicken prices", "source": "archive",
                           "url": f"https://example.com/archive/{i}", "language": "en",
                           "published_at": pd.Timestamp("2018-01-01", tz="Asia/Kuala_Lumpur")} for i in range(count)])
+
+
+def test_holdout_has_rare_product_coverage_and_keeps_articles_together():
+    selected = [({"id": str(i)}, {"product": "rice"}) for i in range(100)]
+    selected += [({"id": str(i)}, {"product": "cooking_oil"}) for i in range(90, 100)]
+    held = holdout_ids(selected, random.Random(42))
+    assert len(held) == 30
+    assert len(held & {str(i) for i in range(90, 100)}) >= 5
+    assert len(held & {str(i) for i in range(100)}) >= 5
+    assert held == holdout_ids(selected, random.Random(42))
 
 
 def test_historical_audit_uses_full_archive_without_polluting_live_cache(tmp_path, monkeypatch):

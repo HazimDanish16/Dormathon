@@ -31,6 +31,28 @@ def snapshot_hash(rows):
     return hashlib.sha256(json.dumps(values, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
 
+def holdout_ids(selected, rng):
+    """Keep articles together and include each sampled product in human validation."""
+    ids = sorted({article["id"] for article, _ in selected})
+    rng.shuffle(ids)
+    holdout = set()
+    products = sorted({match["product"] for _, match in selected})
+    for product in products:
+        eligible = {article["id"] for article, match in selected if match["product"] == product}
+        target = min(5, len(eligible))
+        for article_id in ids:
+            if len(eligible & holdout) >= target:
+                break
+            if article_id in eligible:
+                holdout.add(article_id)
+    target = max(1, math.ceil(len(ids) * .3))
+    for article_id in ids:
+        if len(holdout) >= target:
+            break
+        holdout.add(article_id)
+    return holdout
+
+
 def historical_articles(settings, path, provenance):
     """Validate the complete handoff in bounded batches, including global uniqueness."""
     import pyarrow.parquet as pq
@@ -106,9 +128,7 @@ def export_audit(settings, path: Path, size=120, hours=8760, seed=42, news_file:
         scope = "Random sample of alias candidates in the newest 1000 cached articles; cannot measure alias recall."
     if not count:
         raise AppError("No alias-matched news is available.", "Poll real news, or widen the news window; no fake rows will be substituted.")
-    ids = sorted({article["id"] for article, _ in selected})
-    rng.shuffle(ids)
-    holdout = set(ids[:max(1, math.ceil(len(ids) * .3))])
+    holdout = holdout_ids(selected, rng)
     texts = []
     for article, match in selected:
         product = config.domains[match["domain"]].products[match["product"]]
@@ -126,6 +146,7 @@ def export_audit(settings, path: Path, size=120, hours=8760, seed=42, news_file:
                 "config_sha256": config_hash(settings), "snapshot_sha256": snapshot_hash(rows),
                 "seed": seed, "hours": hours if news_file is None else None, "requested": size, "candidates": count, "sampled": len(rows),
                 "input": provenance,
+                "split_method": "article_grouped_30pct_with_minimum_five_articles_per_sampled_product",
                 "products": dict(Counter(row["product"] for row in rows)),
                 "limitations": [scope,
                                 "Holdout groups article IDs; related stories may still be correlated.",
